@@ -21,13 +21,11 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high reli
 Guarduino was born after I experienced a break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
 
 ## Features:
-* Monitors reed switches with BOTH data pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
-* Monitors (PIR) motion detectors via BOTH "data" pin AND "power sense" pin, thus enabling reliable detection of "motion", "quiet" and "No power."
+* Monitors reed switches via BOTH "NO" and "NC" pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
+* Monitors (PIR/radar) motion detectors via BOTH "data" pin AND "power sense" pin, thus enabling reliable detection of "motion", "quiet" and "No power."
 * Supports HomeAssistant MQTT "Auto Discovery", "Plug and Play", NO "configuration.yaml" changes are needed.
-* Designed to use EVERY available pin on the Arduino Mega; monitoring up to 20, "two pin" sensors.
-* Supports "two pin" (Door and Window) Reed Switches
-* Supports "two pin" Motion (PIR and radar) Sensors
-* Supports reading and toggling HomeAssistant "Switch" sensors
+* Supports monitoring 20 or more concurrent, "two pin" sensors.
+* Supports two-way toggle and read of HomeAssistant "Switches" via MQTT.
 * Supports reading zero to many 1-Wire DS18x temperature sensors.
-* Built-In support for icons based on sensor type and current state of the sensor.
+* Supports dynamic icons based on sensor type and current state.
 
