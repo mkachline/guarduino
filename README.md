@@ -1,5 +1,5 @@
 # guarduino
-Guardino is an Arduino Sketch which is intended to provide a low-cost, high reliability, home security hardware interface which seemlessly interfaces into HomeAssistant via MQTT autodiscovery.
+Guardino is an Arduino Sketch which is intended to provide a low-cost, high reliability, home security hardware interface which seamlessly interfaces into HomeAssistant via MQTT autodiscovery.
 
 
 
