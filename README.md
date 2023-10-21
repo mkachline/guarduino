@@ -1,9 +1,9 @@
 # guarduino
-Guardino is an Arduino Sketch which is intended to provide a low-cost, high accuracy security system. Guarduino was written and tested to integrate seamlessly with HomeAsssitant using HA's MQTT "Auto Discovery".
+Guardino is an Arduino Sketch which is intended to provide a low-cost, high reliability, home security hardware interface which seemlessly interfaces into HomeAssistant via MQTT autodiscovery.
 
 
 
-# Quick Start
+## Quick Start
 1. git clone
 2. Open project in Arduino IDE
 3. Configure a MAC address,
