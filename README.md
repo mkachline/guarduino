@@ -19,16 +19,16 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high accu
 
 
 ## History
-Guarduino was born after I had someone break into my garage and steal every hand tool I owned (and used) for automobile repair. I wanted to monitor entry into the garage (and house) using devices which I could rely on, regardless of temperature, time of day, distance, etc.
+Guarduino was born after I experienced a break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
 
 ## Features:
-* By design, monitors reed switches with TWO data pins, enabling detection of "Open", "Closed" and "Unknown".
-* Written to communicate seamlessly with HomeAssistant's MQTT broker.
-* Designed to use EVERY available pin on the Arduino Mega.
-* Supports "two pin" Door Reed Switches
-* Supports "two pin" Window Reed Switches
-* Supports "two pin" Motion Sensors
-* Supports reading and setting "Switches"
+* Monitors reed switches with BOTH data pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
+* Monitors (PIR) motion detectors via BOTH "data" pin AND "power sense" pin, thus enabling reliable detection of "motion", "quiet" and "No power."
+* Supports HomeAssistant MQTT "Auto Discovery", "Plug and Play", NO "configuration.yaml" changes are needed.
+* Designed to use EVERY available pin on the Arduino Mega; monitoring up to 20, "two pin" sensors.
+* Supports "two pin" Door and Window Reed Switches
+* Supports "two pin" Motion (PIR and radar) Sensors
+* Supports reading and toggling HomeAssistant "Switch" sensors
 * Supports reading zero to many 1-Wire DS18x temperature sensors.
-* Buit-in icon toggle with status toggle.
-* Supports HomeAssistant MQTT "Auto Discovery", NO "cnofiguration.yaml" changes are needed.
+* Built-In support for icons based on sensor type and current state of the sensor.
+
