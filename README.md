@@ -9,12 +9,11 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high reli
 3. Configure a MAC address,
 4. Configure MQTT server IP, user and password.
 5. Install needed libraries
-6. Compile, upload image into your Aruino Mega
+6. Compile, upload image into your Aruino Mega. Boot.
 7. Wire up a door sensor with three wires, 5v, "NO", and "NC"
 8. Plug "NO" into arduino pin 22
 9. Plug "NC" into arduino pin 23
-10. Boot Arduino
-11. Watch for inbound mssages on your MQTT server.
+10. Watch for inbound mssages on your MQTT server.
 
 
 
@@ -26,7 +25,7 @@ Guarduino was born after I experienced a break-in into my garage where every han
 * Monitors (PIR) motion detectors via BOTH "data" pin AND "power sense" pin, thus enabling reliable detection of "motion", "quiet" and "No power."
 * Supports HomeAssistant MQTT "Auto Discovery", "Plug and Play", NO "configuration.yaml" changes are needed.
 * Designed to use EVERY available pin on the Arduino Mega; monitoring up to 20, "two pin" sensors.
-* Supports "two pin" Door and Window Reed Switches
+* Supports "two pin" (Door and Window) Reed Switches
 * Supports "two pin" Motion (PIR and radar) Sensors
 * Supports reading and toggling HomeAssistant "Switch" sensors
 * Supports reading zero to many 1-Wire DS18x temperature sensors.
