@@ -5,10 +5,10 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high accu
 
 # Quick Start
 1. git clone
-2. Open in the Arduino IDE
+2. Open project in Arduino IDE
 3. Configure a MAC address,
 4. Configure MQTT server IP, user and password.
-5. Install related libraries
+5. Install needed libraries
 6. Compile, upload image into your Aruino Mega
 7. Wire up a door sensor with three wires, 5v, "NO", and "NC"
 8. Plug "NO" into arduino pin 22
@@ -18,7 +18,7 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high accu
 
 
 
-## History:
+## History
 Guarduino was born after I had someone break into my garage and steal every hand tool I owned (and used) for automobile repair. I wanted to monitor entry into the garage (and house) using devices which I could rely on, regardless of temperature, time of day, distance, etc.
 
 ## Features:
