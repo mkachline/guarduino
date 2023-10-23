@@ -11,7 +11,7 @@ Guardino is an Arduino Sketch which is intended to provide a low-cost, high reli
 5. Configure which pins will be which devices.
 6. Install needed libraries
 7. Compile, upload image into your Arduino Mega. Boot.
-8. Watch for inbound mssages on your MQTT server.
+8. Watch for inbound messages on your MQTT server.
 
 
 
