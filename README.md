@@ -20,9 +20,6 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 7. Compile, upload image into your Arduino Mega. Boot.
 8. Watch for inbound messages on your MQTT server.
 
-Hardware Supported
-[a relative link](HardwareIndex.md)
-
 
 ## History
 Guarduino was born after I experienced a break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
