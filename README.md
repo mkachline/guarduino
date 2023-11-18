@@ -4,12 +4,12 @@ Guardino is an Arduino (Mega) Sketch which provides a low-cost, high reliability
 <img src="https://github.com/mkachline/guarduino/blob/main/images/guarduino-ha.jpg" alt="drawing" height=380 />
 
 ## Guarduino Features
-* Monitors reed switches via BOTH "NO" and "NC" pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
-* Monitors (PIR/microwave) motion detectors via BOTH "data" pin AND "power sense" pins, thus enabling reliable detection of "motion", "quiet", "unknown" and "no power."
+* Monitors wired reed switches via BOTH "NO" and "NC" pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
+* Monitors wired (PIR/microwave) motion detectors via BOTH "data" pin AND "power sense" pins, thus enabling reliable detection of "motion", "quiet", "unknown" and "no power."
 * Supports HomeAssistant MQTT "Auto Discovery". NO "configuration.yaml" changes are needed.
 * Supports monitoring multiple (20 or more?) concurrent, "two pin" sensors.
 * Supports two-way toggle and read of HomeAssistant "Switches" via MQTT.
-* Supports reading zero to many DS18x temperature sensors.
+* Supports reading zero to many wired, DS18x temperature sensors.
 * Presents dynamic icons based on sensor type and current sensor state.
 * Runs on (affordable) Arduino Mega hardware.
 
