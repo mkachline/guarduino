@@ -3,7 +3,7 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 <br/>
 <img src="https://github.com/mkachline/guarduino/blob/main/images/guarduino-ha.jpg" alt="drawing" height=380 />
 
-## Features:
+## Guarduino Features
 * Monitors reed switches via BOTH "NO" and "NC" pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
 * Monitors (PIR/radar) motion detectors via BOTH "data" pin AND "power sense" pin, thus enabling reliable detection of "motion", "quiet" and "No power."
 * Supports HomeAssistant MQTT "Auto Discovery", NO "configuration.yaml" changes are needed.
@@ -27,5 +27,5 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 Visit the [Guarduino Wiki](https://github.com/mkachline/guarduino/wiki)
 
 
-## History
+## Guarduino History
 Guarduino was born after I experienced a theft/break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
