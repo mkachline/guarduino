@@ -18,11 +18,11 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 3. Edit guarduino.ino
 4. Set your Mosquitto IP address (MQTT_ADDRESS) in guarduino.ino
 5. Set your Mosquitto Password (MQTT_PASSWORD) in guarduino.ino
-5 Install Arduino libraries listed on top of guarduino.ino
-6. Compile, then upload into your Arduino Mega.
-7. Boot your Arduino (Serial Baud rate 19200)
-8. HomeAssistant | Settings | Devices & Services | MQTT
-9. Wait for your Guarduino to show up.
+6. Install Arduino libraries listed on top of guarduino.ino
+7. Compile, then upload into your Arduino Mega.
+8. Boot your Arduino (Serial Baud rate 19200)
+9. HomeAssistant | Settings | Devices & Services | MQTT
+10. Wait for your Guarduino to show up.
 
 ## More Information
 Visit the [Guarduino Wiki](https://github.com/mkachline/guarduino/wiki)
