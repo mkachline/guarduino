@@ -11,7 +11,7 @@
 #define MQTT_PORT 1883
 #define MQTT_USERNAME "homeassistant" // Mosquitto Username
 #define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // Mac Address for your Guarduino.
-#define ONE_WIRE_GPIO 8 // If you're using Dallas 1-wire "ds18x", define that pin here.
+#define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
 
 // CHANGEME: Here is where you set "pins" to "sensor types."
 // See also: guarduino.h... sensorType
@@ -51,9 +51,8 @@ baseSensor allSensors[] = {
 
 
   {reserved, 0, 1}, // Comms
-  {reserved, 9, -1}, //To Reset Pin
   {reserved, ONE_WIRE_GPIO, -1}, // Pin 8
-  {reserved, LED_BUILTIN, -1}, // On-board LED
+  {reserved, LED_BUILTIN, -1}, // On-board LED, as defined in arduino.h
   {reserved, 14, 15}, // Comms
   {reserved, 16, 17}, // Comms
   {reserved, 18, 19}, // Comms
