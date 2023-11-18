@@ -23,6 +23,9 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 8. HomeAssistant | Settings | Devices & Services | MQTT
 9. Wait for your Guarduino to show up.
 
+## More Information
+Visit the [Guarduino Wiki](https://github.com/mkachline/guarduino/wiki)
+
 
 ## History
 Guarduino was born after I experienced a theft/break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
