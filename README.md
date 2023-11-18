@@ -10,7 +10,7 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 * Supports monitoring multiple (20 or more?) concurrent, "two pin" sensors.
 * Supports two-way toggle and read of HomeAssistant "Switches" via MQTT.
 * Supports reading zero to many DS18x temperature sensors.
-* Supports dynamic icons based on sensor type and current state of the sensor.
+* Presents dynamic icons based on sensor type and current sensor state.
 
 ## Quick Start (HomeAssistant Users)
 1. Install the "Mosquitto Broker" Add-On into your HomeAssistant instance.
