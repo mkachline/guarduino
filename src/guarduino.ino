@@ -7,19 +7,18 @@
 
 
 #define MQTT_ADDRESS IPAddress(192,168,1,5) // CHANGEME: Your Mosquitto Server IP Address
-#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxeechai8aeniiZen6hiagoXoxxxxxxxxxxxxx" // Mosquitto Password
-#define MQTT_PORT 1883
-#define MQTT_USERNAME "homeassistant" // Mosquitto Username
-#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // Mac Address for your Guarduino.
-#define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
+#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxeechai8aeniiZen6hiagoXoxxxxxxxxxxxxx" // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Password
+#define MQTT_PORT 1883 // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Port
+#define MQTT_USERNAME "homeassistant" // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Username
 
-// CHANGEME: Here is where you set "pins" to "sensor types."
-// See also: guarduino.h... sensorType
+#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // Mac Address for your Guarduino.
+
+// CHANGEME: Here is where you assign hardware pins to "sensor types."
+// See also: https://github.com/mkachline/guarduino/wiki
+// See also: https://content.arduino.cc/assets/Pinout-Mega2560rev3_latest.pdf
+#define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
 baseSensor allSensors[] = {
-  // https://content.arduino.cc/assets/Pinout-Mega2560rev3_latest.pdf
-  // Note! door2, garagedoor2, window2 "pin1" is "no" aka "normally open", "pin2" is "nc" aka "normally closed"  
-  // Note! motion2: "pin1" is "data", pin2 is "power sense"
-  
+/* { sensortype, pin1, pin2 } */  
   {door2, 22, 23},  
   {door2, 24, 25},  
   {door2, 26, 27},
