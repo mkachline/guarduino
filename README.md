@@ -2,6 +2,7 @@
 Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, high reliability, home security hardware interface which seamlessly interfaces into HomeAssistant via MQTT autodiscovery.
 <br/>
 <img src="https://github.com/mkachline/guarduino/blob/main/images/guarduino-ha.jpg" alt="drawing" height=380 />
+<img src="https://github.com/mkachline/guarduino/blob/main/images/guarduino.jpg" alt="drawing" height=300 />
 
 ## Guarduino Features
 * Monitors reed switches via BOTH "NO" and "NC" pins, thus enabling reliable detection of "Open", "Closed", "Unknown" and "No Power".
