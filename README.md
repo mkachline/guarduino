@@ -14,9 +14,10 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 
 ## Quick Start (HomeAssistant Users)
 1. Install the "Mosquitto Broker" Add-On into your HomeAssistant instance.
-2. Edit guarduino.ino
-3. Set your Mosquitto IP address (MQTT_ADDRESS) in guarduino.ino
-4. Set your Mosquitto Password (MQTT_PASSWORD) in guarduino.ino
+2. Install the "MQTT" Integration into your HomeAssistant instance.
+3. Edit guarduino.ino
+4. Set your Mosquitto IP address (MQTT_ADDRESS) in guarduino.ino
+5. Set your Mosquitto Password (MQTT_PASSWORD) in guarduino.ino
 5 Install Arduino libraries listed on top of guarduino.ino
 6. Compile, then upload into your Arduino Mega.
 7. Boot your Arduino (Serial Baud rate 19200)
