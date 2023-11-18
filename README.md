@@ -30,4 +30,4 @@ Visit the [Guarduino Wiki](https://github.com/mkachline/guarduino/wiki)
 
 
 ## Guarduino History
-Guarduino was born after I experienced a theft/break-in into my garage where every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. 
+Guarduino was born after I was victim of a break-in into my garage where,  every hand tool I owned was stolen. Determined to prevent this again, I wanted to monitor entry points into the garage (and house) using devices which I could RELY on, and which did not cost a fortune. I found that most existing projects either supported "one pin" reed switches, and/or, were not capable of supporting numerous devices on an Arduino, typically due to memory constraints.
