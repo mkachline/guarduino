@@ -7,18 +7,20 @@ Guardino is an Arduino (Mega) Sketch which is intended to provide a low-cost, hi
 * Supports HomeAssistant MQTT "Auto Discovery", NO "configuration.yaml" changes are needed.
 * Supports monitoring 20 or more concurrent, "two pin" sensors.
 * Supports two-way toggle and read of HomeAssistant "Switches" via MQTT.
-* Supports reading zero to many 1-Wire DS18x temperature sensors.
-* Supports dynamic icons based on sensor type and current state.
+* Supports reading zero to many DS18x temperature sensors.
+* Supports dynamic icons based on sensor type and current state of the sensor.
 
 ## Quick Start
 1. git clone
-2. Open project in Arduino IDE
-3. Configure a MAC address,
-4. Configure MQTT IP, user and password.
-5. Configure which pins will be which devices.
-6. Install needed libraries
-7. Compile, upload image into your Arduino Mega. Boot.
-8. Watch for inbound messages on your MQTT server.
+2. Edit guarduino.ino
+3. Set a MAC address.
+4. Set your MQTT IP
+5. Set your MQTT user
+6. Set your MQTT password
+8. Install needed libraries (See top of guarduino.ino)
+9. Compile, upload into your Arduino Mega. Boot.
+10. HomeAssistant | Settings | Devices & Services | MQTT
+11. Wait for your Guarduino to show up.
 
 
 ## History
