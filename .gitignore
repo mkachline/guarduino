@@ -1,0 +1,5 @@
+.vscode
+guarduino/.vscode
+guarduino/bin
+guarduino/build
+*.json

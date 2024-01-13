@@ -7,17 +7,17 @@
 
 
 #define MQTT_ADDRESS IPAddress(192,168,1,5) // CHANGEME: Your Mosquitto Server IP Address
-#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxeechai8aeniiZen6hiagoXoxxxxxxxxxxxxx" // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Password
+#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxeechai8aeniiZen6hiagoXoxxxxxxxxxxxxx" // CHANGEME: HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Password
 #define MQTT_PORT 1883 // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Port
 #define MQTT_USERNAME "homeassistant" // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Username
 
-#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // Mac Address for your Guarduino.
+#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // CHANGEME: Mac Address for your Guarduino.
 
 // CHANGEME: Here is where you assign hardware pins to "sensor types."
 // See also: https://github.com/mkachline/guarduino/wiki
 // See also: https://content.arduino.cc/assets/Pinout-Mega2560rev3_latest.pdf
 #define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
-baseSensor allSensors[] = {
+baseSensor_t allSensors[] = {
 /* { sensortype, pin1, pin2 } */  
   {door2, 22, 23},  
   {door2, 24, 25},  
@@ -34,12 +34,12 @@ baseSensor allSensors[] = {
   //{unused, 46, 47}, 
   //{unused, 48, 49}, 
 
-  //{unused, A0, A1},
-  //{unused, A2, A3}, 
-  //{unused, A4, A5},
-  //{unused, A6, A7},  
-  //{unused, A8, A9},   
-  //{unused, A10, A11},  
+  {motion2, A0, A1},
+  {motion2, A2, A3}, 
+  {motion2, A4, A5},
+  {motion2, A6, A7},  
+  {motion2, A8, A9},   
+  {motion2, A10, A11},  
   
   //{unused, A12, -1},
   //{unused, A13, -1},
@@ -74,7 +74,7 @@ static unsigned long lastReadAt = millis();
 
 
 void setup() {    
-    Serial.begin(19200);
+    Serial.begin(115200);
     Serial.print("Start ");
     Serial.print(GUARDUINO_URL);
     Serial.print(" version: ");
@@ -190,10 +190,10 @@ void pubsubReconnect(void) {
 void mqttCallback(char *topic, byte *payloadBytes, unsigned int length) {
     // Listen for changes in one of our Switches here.
     size_t charsLength = length + 1;
-    char *payloadChars = malloc(charsLength * sizeof(char));
+    char *payloadChars =  (char *) calloc(charsLength, sizeof(char));
     if(! payloadChars) { return; }
     memset(payloadChars, '\0', charsLength);
-    strncpy(payloadChars, payloadBytes, length);
+    strncpy(payloadChars, (const char *) payloadBytes, length);
     
     Serial.println("CALLBACK!!");    
 
@@ -229,4 +229,12 @@ static void setupEthernet(void) {
     } else if (Ethernet.hardwareStatus() == EthernetW5500) {
       Serial.println("W5500 Ethernet controller detected.");
     }
+}
+
+int allSensorCount(void) {
+  size_t totalsize = sizeof(allSensors);
+  size_t onesize = sizeof(baseSensor_t);
+
+  if(totalsize == 0) return 0;
+  return(totalsize / onesize);
 }
