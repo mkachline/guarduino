@@ -4,18 +4,13 @@
 #include "guarduino.h"
 
 
-static size_t mqttSensorDiscovery(baseSensor thisSensor, uint64_t pinReadings, size_t paramSize);
+static size_t mqttSensorDiscovery(baseSensor_t thisSensor, uint64_t pinReadings, size_t paramSize);
+static sensorStates getSensorStateEnum(baseSensor_t sensor, uint64_t pinReadings);
+static const char *getSensorStateName(baseSensor_t sensor, uint64_t pinReadings);
+static const char *getSensorStateIcon(baseSensor_t sensor, uint64_t pinReadings);
 
 
 
-
-int allSensorCount() {
-  size_t totalsize = sizeof(allSensors);
-  size_t onesize = sizeof(baseSensor);
-
-  if(totalsize == 0) return 0;
-  return(totalsize / onesize);
-}
 
 
 
@@ -23,9 +18,9 @@ int allSensorCount() {
  * Step through each of "allSensors" and send "discovery/data" pairs to MQTT, based on readings found
  * in "pinReadings". Ignores any sensors of status 'offline'.
  */
-void sendSensorsMQTT(uint64_t pinReadings, baseSensor *allSensors, size_t allSensorsSize) {
-  for(int i = 0; i < (allSensorsSize / sizeof(baseSensor)); i++) {
-    baseSensor thisSensor = allSensors[i];        
+void sendSensorsMQTT(uint64_t pinReadings, baseSensor_t *allSensors, size_t allSensorsSize) {
+  for(int i = 0; i < (allSensorsSize / sizeof(baseSensor_t)); i++) {
+    baseSensor_t thisSensor = allSensors[i];
 
     switch(thisSensor.type) {      
       case reserved:
@@ -79,7 +74,7 @@ void mqttSensorSendDiscovery(uint64_t pinReadings) {
   
   
   for(int i = 0; i < allSensorCount(); i++) {
-    baseSensor *thisSensor = &allSensors[i];    
+    baseSensor_t *thisSensor = &allSensors[i];    
     mqttSensorDiscovery(*thisSensor, pinReadings, 0);
   }
 }
@@ -98,7 +93,7 @@ void getDeviceName(char *destbuf, size_t destbufsize) {
 }
 
 
-void getSensorName(char *destbuf, size_t destbufsize, baseSensor thisSensor) {
+void getSensorName(char *destbuf, size_t destbufsize, baseSensor_t thisSensor) {
   if(destbufsize < strlen("someplaceholder_NNNN_NNNNNN")) return;
   
   byte macBytes[6];
@@ -146,7 +141,7 @@ void getSensorName(char *destbuf, size_t destbufsize, baseSensor thisSensor) {
  * homeassistant/binary_sensor/garden/config
  *
  */
-static char *getSensorDiscoveryTopic(baseSensor thisSensor) {   
+static char *getSensorDiscoveryTopic(baseSensor_t thisSensor) {   
   char sensorName[48];
   getSensorName(sensorName, sizeof(sensorName), thisSensor);
 
@@ -156,7 +151,7 @@ static char *getSensorDiscoveryTopic(baseSensor thisSensor) {
   topicsize += strlen(sensorName);
   topicsize += strlen("/config");
   topicsize += 1;  
-  char *topic = malloc(topicsize * sizeof(char));
+  char *topic = (char *) calloc(topicsize, sizeof(char));
   memset(topic, '\0', topicsize);
 
 
@@ -200,7 +195,7 @@ static char *getSensorDiscoveryTopic(baseSensor thisSensor) {
  * aha/switch/switch_NN/state/sw
  */
 
-char *getSensorStateTopic(baseSensor thisSensor) {
+char *getSensorStateTopic(baseSensor_t thisSensor) {
 
   char deviceName[32];
   getDeviceName(deviceName, sizeof(deviceName));
@@ -218,7 +213,7 @@ char *getSensorStateTopic(baseSensor thisSensor) {
   topicsize += strlen("/state");
   topicsize += 4; // Safety margin.
 
-  char *topic = malloc(topicsize * sizeof(char));
+  char *topic = (char *) calloc(topicsize, sizeof(char));
   if(topic) {
     memset(topic, '\0', topicsize);
     switch(thisSensor.type) {
@@ -258,7 +253,7 @@ char *getDeviceCommandTopic(void) {
   topicsize += strlen("/cmd");
   topicsize += 4; // Safety margin.
 
-  char *topic = malloc(topicsize * sizeof(char));
+  char *topic = (char *) calloc(topicsize, sizeof(char));
   snprintf(topic, topicsize - 1, "%s/switch/%s/cmd", HA_TOPIC_DATA, deviceName);
 
   return topic;
@@ -281,7 +276,7 @@ char *getDeviceCommandTopic(void) {
  * Example Payload sent:
  * {"device_class": "temperature", "name": "Temperature", "state_topic": "homeassistant/sensor/sensorBedroom/state", "unit_of_measurement": "°C", "value_template": "{{ value_json.temperature}}","unique_id": "temp01ae", "device": {"identifiers": ["bedroom01ae"], "name": "Bedroom" }}
  */
-static size_t mqttSensorDiscovery(baseSensor thisSensor, uint64_t pinReadings, size_t paramSize = 0) {
+static size_t mqttSensorDiscovery(baseSensor_t thisSensor, uint64_t pinReadings, size_t paramSize = 0) {
   char buffer[64];
   size_t payloadsize = 0;
   const bool shouldSend = (paramSize > 0);
@@ -579,7 +574,7 @@ char *getDeviceDiscoveryPayload(void) {
   char buffer[80]; // "Connections" is our longest string to fit here.
   IPAddress myIP = Ethernet.localIP();
   size_t jsonsize = 8;
-  char *json = malloc(jsonsize * sizeof(char));
+  char *json = (char *) calloc(jsonsize,  sizeof(char));
   memset(json, '\0', jsonsize);
 
 
@@ -688,9 +683,9 @@ size_t mqttsend(const bool shouldSend, const char *nulltermstring) {
  * Iterate through our list of baseSensors and setup pins for each sensor.
  * This function intended to be called in the arduino setup() method.
  */
-void setupSensors(baseSensor *sensors, size_t sensorsSize) 
+void setupSensors(baseSensor_t *sensors, size_t sensorsSize) 
 {
-  int sensorCount = sensorsSize / sizeof(baseSensor);
+  int sensorCount = sensorsSize / sizeof(baseSensor_t);
   char sensorName[24];
   char *sensorCommandTopic = NULL;
 
@@ -700,7 +695,7 @@ void setupSensors(baseSensor *sensors, size_t sensorsSize)
 
   // Our configured pins.
   for(int i = 0; i < sensorCount; i++) {
-    baseSensor *thisSensor = &sensors[i];
+    baseSensor_t *thisSensor = &sensors[i];
     switch(thisSensor->type) {
       case door2:
       case garagedoor2:
@@ -747,7 +742,7 @@ void setupSensors(baseSensor *sensors, size_t sensorsSize)
 /**
  * Given a sensor, and a set of all readings, return the enumerated "state" of the sensor.
  */
-sensorStates getSensorStateEnum(baseSensor sensor, uint64_t pinReadings) {
+sensorStates getSensorStateEnum(baseSensor_t sensor, uint64_t pinReadings) {
   bool pin1data = false;
   bool pin2data = false;
   sensorStates theState = unknown;
@@ -815,7 +810,7 @@ sensorStates getSensorStateEnum(baseSensor sensor, uint64_t pinReadings) {
  * display a dynamically different icon for this sensor based on the current state of the sensor.
  * https://pictogrammers.com/library/mdi/
  */
-const char *getSensorStateIcon(baseSensor sensor, uint64_t pinReadings) {
+const char *getSensorStateIcon(baseSensor_t sensor, uint64_t pinReadings) {
   sensorStates theState = getSensorStateEnum(sensor, pinReadings);
   static const char *icon_unknown = "mdi:help-circle"; 
   static const char *icon_alert = "mdi:alert-circle-outline";
@@ -908,7 +903,7 @@ const char *getSensorStateIcon(baseSensor sensor, uint64_t pinReadings) {
 /**
  * This is the value which HA displays for this "entity". This value is returned based on status computed in pinReadings for this sensor.
  */
-static const char *getSensorStateName(baseSensor sensor, uint64_t pinReadings) {
+const char *getSensorStateName(baseSensor_t sensor, uint64_t pinReadings) {
   static const char *name_unknown = "unknown";   
   static const char *name_open = "open";
   static const char *name_closed = "closed";
@@ -957,12 +952,12 @@ static const char *getSensorStateName(baseSensor sensor, uint64_t pinReadings) {
  * Ultimately, returns a 64 bit integer, starting with "oldbits", with appropriate sensor bits 
  * modified (and all other bits left in-place.)
  */
-uint64_t readSensors(uint64_t oldBits, baseSensor *sensors, size_t sensorsSize)
+uint64_t readSensors(uint64_t oldBits, baseSensor_t *sensors, size_t sensorsSize)
 {
   uint64_t newBits = oldBits;
   
-  for(int i = 0; i < (sensorsSize / sizeof(baseSensor)); i++) {
-    baseSensor thisSensor = sensors[i];
+  for(int i = 0; i < (sensorsSize / sizeof(baseSensor_t)); i++) {
+    baseSensor_t thisSensor = sensors[i];
     switch(thisSensor.type) {
       case door2:
       case garagedoor2:

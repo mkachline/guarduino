@@ -7,7 +7,7 @@
 void handleCallbackSwitches(const char *callbackValue) {
   Serial.print("handleCallbackSwitches(): ");
   Serial.println(callbackValue);  
-  baseSensor *thisSensor = NULL;
+  baseSensor_t *thisSensor = NULL;
 
   for(int i = 0; i < allSensorCount(); i++) {
 
@@ -55,13 +55,13 @@ void handleCallbackSwitches(const char *callbackValue) {
  * switch_NN-ON
  * switch_NN-OFF
  */
-const char *switchValueON(baseSensor thisSensor) {
+const char *switchValueON(baseSensor_t thisSensor) {
   static char fullValue[16];
   memset(fullValue, '\0', sizeof(fullValue));
   sprintf(fullValue, "switch_%02d-ON", thisSensor.pin1);
   return fullValue;  
 }
-const char *switchValueOFF(baseSensor thisSensor) {
+const char *switchValueOFF(baseSensor_t thisSensor) {
   static char fullValue[16];
   memset(fullValue, '\0', sizeof(fullValue));
   sprintf(fullValue, "switch_%02d-OFF", thisSensor.pin1);
@@ -79,7 +79,7 @@ const char *switchValueOFF(baseSensor thisSensor) {
  * https://www.home-assistant.io/integrations/switch.mqtt#payload_on
  * https://www.home-assistant.io/integrations/switch.mqtt#payload_off
  */
-const char *readSwitchSensor(uint64_t pinReadings, baseSensor thisSensor)  {
+const char *readSwitchSensor(uint64_t pinReadings, baseSensor_t thisSensor)  {
   bool data = getBit(pinReadings, thisSensor.pin1);
 
   if(data == HIGH) { return switchValueON(thisSensor); }
