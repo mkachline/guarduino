@@ -47,6 +47,8 @@ ds18x_t *readDS18xSensors(void)
             thisds18x->temp_f = tempF;
             thisds18x->temp_f_old = BOGUS_TEMPERATURE;
             thisds18x->temp_f_oldest = BOGUS_TEMPERATURE;
+            Serial.print("Read tempF: ");
+            Serial.println(thisds18x->temp_f);
 
             // What temperature did we last read for this same device?
             // This is important for filtering out 'noise' readings.
@@ -114,11 +116,12 @@ void mqttds18xSendData(ds18x_t *allds18x, unsigned int ds18xcount)
 
         // Arduino's "sprintf()" doesn't handle floats, hence the silliness here.
         float tempF = thisds18x->temp_f;
-        int intval = int(tempF);
-        int fractionval = (int(100 * (tempF - int(tempF)))); // https://forum.arduino.cc/t/sprintf-a-float-number/1013193
+        signed int intval = (signed int) tempF;
+        unsigned int fractionval = abs(int(100 * (tempF - int(tempF)))); // https://forum.arduino.cc/t/sprintf-a-float-number/1013193
+        //unsigned int fractionval = 0;
         char tempString[8];
         memset(tempString, '\0', sizeof(tempString));
-        snprintf(tempString, sizeof(tempString) - 1, "%d.%02d", intval, fractionval);
+        snprintf(tempString, sizeof(tempString) - 1, "%i.%02d", intval, fractionval);
 
         // Send MQTT DATA here.
         char *ds18xStateTopic = getds18xStateTopic(*thisds18x);

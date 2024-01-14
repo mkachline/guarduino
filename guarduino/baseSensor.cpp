@@ -32,6 +32,12 @@ void sendSensorsMQTT(uint64_t pinReadings, baseSensor_t *allSensors, size_t allS
       case window2:
       case motion2:
       case motion2_laser:
+      case switch1:
+      case switch1_radiator:
+      case switch1_fan:
+      case switch1_fire:
+      case switch1_alarmlight:
+
         sensorStates thisState = getSensorStateEnum(thisSensor, pinReadings);
         if(thisState == unknown) continue;
         if(thisState == door2_offline) continue;
@@ -474,9 +480,7 @@ static size_t mqttSensorDiscovery(baseSensor_t thisSensor, uint64_t pinReadings,
     case switch1_fire:
     case switch1_alarmlight:
       payloadsize += mqttsend(shouldSend, ",");
-      payloadsize += mqttsend(shouldSend, "\"state_off\":\"");
-      payloadsize += mqttsend(shouldSend, switchValueOFF(thisSensor));
-      payloadsize += mqttsend(shouldSend, "\"");
+      payloadsize += mqttsend(shouldSend, "\"state_off\":\"OFF\"");
       break;
     default:
       break;
@@ -491,9 +495,7 @@ static size_t mqttSensorDiscovery(baseSensor_t thisSensor, uint64_t pinReadings,
     case switch1_fire:
     case switch1_alarmlight:
       payloadsize += mqttsend(shouldSend, ",");
-      payloadsize += mqttsend(shouldSend, "\"state_on\":\"");
-      payloadsize += mqttsend(shouldSend, switchValueON(thisSensor));
-      payloadsize += mqttsend(shouldSend, "\"");
+      payloadsize += mqttsend(shouldSend, "\"state_on\":\"ON\"");
       break;
     default:
       break;
@@ -795,8 +797,8 @@ sensorStates getSensorStateEnum(baseSensor_t sensor, uint64_t pinReadings) {
     case switch1_alarmlight:
       // Switch1: "pin1" is "switch status", "pin2" is unused.
       pin1data = getBit(pinReadings, sensor.pin1);      
-      if( (pin1data==true) ) theState = switch1_on;
-      if( (pin1data==false) ) theState = switch1_off;
+      if( (pin1data == HIGH) ) theState = switch1_on;
+      if( (pin1data == LOW) ) theState = switch1_off;
       break;      
   }
 
@@ -907,18 +909,21 @@ const char *getSensorStateName(baseSensor_t sensor, uint64_t pinReadings) {
   static const char *name_unknown = "unknown";   
   static const char *name_open = "open";
   static const char *name_closed = "closed";
+  static const char *name_off = "OFF";
+  static const char *name_on = "ON";
   static const char *name_offline = "offline"; // https://www.home-assistant.io/integrations/sensor.mqtt/#payload_not_available
   static const char *name_fault = "wiringfault";   
   static const char *name_motion = "motion";
   static const char *name_quiet = "quiet";
   static const char *name_motion_nopower = "motion-fault";
+  sensorStates theState;
 
   switch(sensor.type) {
     case door2:
     case garagedoor2:
     case window2:
     case motion2:
-      sensorStates theState = getSensorStateEnum(sensor, pinReadings);
+      theState = getSensorStateEnum(sensor, pinReadings);
       if(theState == door2_open) return name_open;  
       if(theState == door2_closed) return name_closed;
       if(theState == door2_fault) return name_fault;
@@ -938,6 +943,17 @@ const char *getSensorStateName(baseSensor_t sensor, uint64_t pinReadings) {
       if(theState == motion2_fault) return name_motion_nopower;
       if(theState == motion2_offline) return name_offline;
       break;
+
+    case switch1:
+    case switch1_radiator:
+    case switch1_fan:
+    case switch1_fire:
+    case switch1_alarmlight:
+      theState = getSensorStateEnum(sensor, pinReadings);
+      if(theState == switch1_on) return name_on;
+      if(theState == switch1_off) return name_off;
+      break;      
+
 
     default:
       break;

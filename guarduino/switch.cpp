@@ -11,7 +11,7 @@ void handleCallbackSwitches(const char *callbackValue) {
 
   for(int i = 0; i < allSensorCount(); i++) {
 
-    // Is this a sensor worth cnosidering?
+    // Is this a sensor worth considering?
     thisSensor = &allSensors[i];
     switch(thisSensor->type) {
       case switch1:

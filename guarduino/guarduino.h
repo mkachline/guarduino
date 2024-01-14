@@ -7,7 +7,7 @@
 
 #define HA_TOPIC_DATA "aha"                // Mosquitto Data topic. You probably don't need to change this.
 #define HA_TOPIC_DISCOVERY "homeassistant" // Mosquitto Discovery topic. You probably don't need to change this.
-#define SOFTWARE_VERSION "2024.01.13.8"
+#define SOFTWARE_VERSION "2024.01.13.19"
 
 enum sensorType
 {
