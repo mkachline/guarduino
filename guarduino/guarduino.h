@@ -7,7 +7,7 @@
 
 #define HA_TOPIC_DATA "aha"                // Mosquitto Data topic. You probably don't need to change this.
 #define HA_TOPIC_DISCOVERY "homeassistant" // Mosquitto Discovery topic. You probably don't need to change this.
-#define SOFTWARE_VERSION "2024.01.13.2"
+#define SOFTWARE_VERSION "2024.01.13.8"
 
 enum sensorType
 {
@@ -103,7 +103,6 @@ extern void setupDS18Sensors(void);
 extern ds18x_t *readDS18xSensors(void);
 extern void mqttds18xSendData(ds18x_t *allds18x, unsigned int ds18xcount);
 extern void mqttds18xSendDiscovery(ds18x_t *allds18x, unsigned int ds18xcount);
-
 
 #define BOGUS_TEMPERATURE 222.22
 #endif /* _GUARDUINO_H_ */

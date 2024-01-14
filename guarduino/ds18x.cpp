@@ -25,8 +25,6 @@ void setupDS18Sensors(void)
 
 ds18x_t *readDS18xSensors(void)
 {
-    DeviceAddress thisDeviceAddress;
-    char *entityName = NULL;
     unsigned char newds18x_count;
     ds18x_t *newds18x = NULL;
 
@@ -38,9 +36,13 @@ ds18x_t *readDS18xSensors(void)
         for (int i = 0; i < newds18x_count; i++)
         {
             ds18x_t *thisds18x = &newds18x[i];
+            thisds18x->temp_f = BOGUS_TEMPERATURE;
+            thisds18x->temp_f_old = BOGUS_TEMPERATURE;
+            thisds18x->temp_f_oldest = BOGUS_TEMPERATURE;
 
             if (!sensors.getAddress(thisds18x->address, i)) continue;
-            sensors.requestTemperaturesByAddress(thisds18x->address);
+            if (!sensors.requestTemperaturesByAddress(thisds18x->address)) continue;
+
             float tempF = sensors.getTempF(thisds18x->address);
             thisds18x->temp_f = tempF;
             thisds18x->temp_f_old = BOGUS_TEMPERATURE;
@@ -52,8 +54,9 @@ ds18x_t *readDS18xSensors(void)
             for (int j = 0; j < allds18x_count; j++)
             {
                 ds18x_t *oldds18x = &allds18x[j];
-                if (oldds18x->address == thisds18x->address)
+                if (memcmp(thisds18x->address, oldds18x->address, sizeof(DeviceAddress)) == 0)
                 {
+                    thisds18x->temp_f = tempF;
                     thisds18x->temp_f_old = oldds18x->temp_f;
                     thisds18x->temp_f_oldest = oldds18x->temp_f_old;
                 }
@@ -64,6 +67,7 @@ ds18x_t *readDS18xSensors(void)
     if (allds18x != NULL)
     { // global variable
         free(allds18x);
+        allds18x = NULL;
     }
     allds18x = newds18x;
     allds18x_count = newds18x_count;
@@ -143,7 +147,6 @@ void mqttds18xSendData(ds18x_t *allds18x, unsigned int ds18xcount)
 void mqttds18xSendDiscovery(ds18x_t *allds18x, unsigned int ds18xcount)
 {
     Serial.println("mqttds18xSendDiscovery()");
-    char sensorName[64];
 
     for (int i = 0; i < ds18xcount; i++)
     {
@@ -168,13 +171,23 @@ bool ds18xHasValidReading(ds18x_t thisds18x)
     if( abs(thisds18x.temp_f_old) >= BOGUS_TEMPERATURE) returnval = false;
     if( abs(thisds18x.temp_f_oldest) >= BOGUS_TEMPERATURE) returnval = false;
 
-    // If our read interval is even 30 seconds, the chances of a 20 degree drop is possible, but low.    
+    // The chances of a 20 degree drop in our 3x reading interval is not probable.
     if (abs(thisds18x.temp_f - thisds18x.temp_f_old) > 20) returnval = false;
     if (abs(thisds18x.temp_f - thisds18x.temp_f_oldest) > 20) returnval = false;
     if (abs(thisds18x.temp_f_old - thisds18x.temp_f_oldest) > 20) returnval = false;
 
     if(returnval == false) {
-        // <ds18x address> Invalid Readings(s) x y z
+        
+        char sensorName[24];
+        ds18xName(sensorName, sizeof(sensorName), thisds18x);
+        Serial.print(sensorName);
+        Serial.print(" Invalid Read: ");
+        Serial.print(thisds18x.temp_f);
+        Serial.print(" ");
+        Serial.print(thisds18x.temp_f_old);
+        Serial.print(" ");
+        Serial.print(thisds18x.temp_f_oldest);
+        Serial.println("");
     }
 
     return returnval;

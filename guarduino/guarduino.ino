@@ -6,12 +6,12 @@
 #include "guarduino.h"
 
 
-#define MQTT_ADDRESS IPAddress(192,168,1,5) // CHANGEME: Your Mosquitto Server IP Address
-#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxeechai8aeniiZen6hiagoXoxxxxxxxxxxxxx" // CHANGEME: HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Password
+#define MQTT_ADDRESS IPAddress(192,168,15,6) // CHANGEME: Your Mosquitto Server IP Address
+#define MQTT_PASSWORD "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxaeniiZen6hiagoxxxxxxxxxxxxxxxxx" // CHANGEME: HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Password
 #define MQTT_PORT 1883 // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Port
 #define MQTT_USERNAME "homeassistant" // HA | Settings | Devices | MQTT | Configure | "Re-Configure MQTT" | Username
 
-#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x01, 0x05  } // CHANGEME: Mac Address for your Guarduino.
+#define MACADDRESS { 0x00, 0xEA, 0xBB, 0xCC, 0x15, 0x78  } // CHANGEME: Mac Address for your Guarduino.
 
 // CHANGEME: Here is where you assign hardware pins to "sensor types."
 // See also: https://github.com/mkachline/guarduino/wiki
@@ -19,6 +19,10 @@
 #define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
 baseSensor_t allSensors[] = {
 /* { sensortype, pin1, pin2 } */  
+  {reserved, 14, 15}, // Comms
+  {reserved, 16, 17}, // Comms
+  {reserved, 18, 19}, // Comms
+  {reserved, 20, 21}, // Comms
   {door2, 22, 23},  
   {door2, 24, 25},  
   {door2, 26, 27},
@@ -39,7 +43,7 @@ baseSensor_t allSensors[] = {
   {motion2, A4, A5},
   {motion2, A6, A7},  
   {motion2, A8, A9},   
-  {motion2, A10, A11},  
+  {motion2, A10, A11},
   
   //{unused, A12, -1},
   //{unused, A13, -1},
@@ -52,10 +56,6 @@ baseSensor_t allSensors[] = {
   {reserved, 0, 1}, // Comms
   {reserved, ONE_WIRE_GPIO, -1}, // Pin 8
   {reserved, LED_BUILTIN, -1}, // On-board LED, as defined in arduino.h
-  {reserved, 14, 15}, // Comms
-  {reserved, 16, 17}, // Comms
-  {reserved, 18, 19}, // Comms
-  {reserved, 20, 21}, // Comms
   {reserved, 50, 51}, // SPI
   {reserved, 52, 53}, // SPI
 };
