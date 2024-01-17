@@ -298,6 +298,17 @@ static size_t mqttds18xDiscovery(ds18x_t thisds18x, size_t paramSize = 0)
     // Device Class
     payloadsize += mqttsend((paramSize > 0), ", \"device_class\":\"temperature\"");
 
+    // Force Update
+    payloadsize += mqttsend((paramSize > 0), ", \"force_update\":true");
+
+    // Display to 2 decimals
+    payloadsize += mqttsend((paramSize > 0), ", \"suggested_display_precision\":2");
+
+    // TODO: unit_of_measurement 
+
+    // Expire After 5 minutes
+    payloadsize += mqttsend((paramSize > 0), ", \"expire_after\":300");
+
     // State Topic
     char *sensorStateTopic = getds18xStateTopic(thisds18x);
     if (sensorStateTopic)
