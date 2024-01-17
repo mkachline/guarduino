@@ -323,7 +323,22 @@ static size_t mqttds18xDiscovery(ds18x_t thisds18x, size_t paramSize = 0)
 
     // Icon
     // https://pictogrammers.com/library/mdi/
-    payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer\"");
+    if(ds18xHasValidReading(thisds18x) == false) {
+    	payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer-alert\"");
+    } else {
+        if(thisds18x.temp_f <= 0) {
+            payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer-minus\"");
+        } else if(thisds18x.temp_f < 30) {
+            payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer-low\"");
+        } else if (thisds18x.temp_f > 100) {
+            payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer-plus\"");
+        } else if (thisds18x.temp_f > 85) {
+            payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer-high\"");
+        } else {
+            payloadsize += mqttsend((paramSize > 0), ", \"icon\":\"mdi:thermometer\"");
+        }
+    	
+    }
 
     // Unique ID
     payloadsize += mqttsend((paramSize > 0), ",");
