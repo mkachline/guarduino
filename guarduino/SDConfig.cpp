@@ -5,6 +5,8 @@
 #include "guarduino.h"
 #include <ctype.h>
 
+#define MQTT_DEFAULT_PORT 1883
+
 // Note: adjust this chip select pin to match your hardware's SD CS pin.
 // Common values are 4 or 10 depending on shield/module.
 static const uint8_t SDCARD_CS_PIN = 4;

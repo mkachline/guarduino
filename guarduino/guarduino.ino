@@ -133,7 +133,13 @@ void pubsubReconnect(void) {
         Serial.print(":");
         Serial.print(mqtt_password);
         Serial.print("@");
-        Serial.print(mqtt_address.toString());
+        Serial.print(mqtt_address[0]);
+        Serial.print(".");
+        Serial.print(mqtt_address[1]);
+        Serial.print(".");
+        Serial.print(mqtt_address[2]);
+        Serial.print(".");
+        Serial.print(mqtt_address[3]);
         Serial.print(":");
         Serial.print(mqtt_port);
         Serial.println("");
