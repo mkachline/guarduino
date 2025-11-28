@@ -1,0 +1,147 @@
+# Guarduino Configuration File
+# Format: INI
+# This file should be saved as CONFIG.INI on your SD card
+
+[network]
+macaddress = 00:EA:BB:CC:15:78
+mqtt_address = 192.168.15.6
+mqtt_port = 1883
+mqtt_username = homeassistant
+mqtt_password = your_mqtt_password_here
+
+# Sensor configuration
+# Each sensor is defined in its own section named [sensorN] where N is 0-63
+# Supported types: door2, garagedoor2, window2, motion2, motion2_laser, 
+#                  switch1, switch1_radiator, switch1_fan, switch1_fire, 
+#                  switch1_alarmlight, reserved
+# pin1 and pin2 are required (use -1 for unused pins)
+
+[sensor0]
+type = reserved
+pin1 = 14
+pin2 = 15
+
+[sensor1]
+type = reserved
+pin1 = 16
+pin2 = 17
+
+[sensor2]
+type = reserved
+pin1 = 18
+pin2 = 19
+
+[sensor3]
+type = reserved
+pin1 = 20
+pin2 = 21
+
+[sensor4]
+type = door2
+pin1 = 22
+pin2 = 23
+
+[sensor5]
+type = door2
+pin1 = 24
+pin2 = 25
+
+[sensor6]
+type = door2
+pin1 = 26
+pin2 = 27
+
+[sensor7]
+type = motion2
+pin1 = 30
+pin2 = 31
+
+[sensor8]
+type = motion2
+pin1 = 32
+pin2 = 33
+
+[sensor9]
+type = motion2
+pin1 = 34
+pin2 = 35
+
+[sensor10]
+type = window2
+pin1 = 38
+pin2 = 39
+
+[sensor11]
+type = window2
+pin1 = 40
+pin2 = 41
+
+[sensor12]
+type = window2
+pin1 = 42
+pin2 = 43
+
+[sensor13]
+type = window2
+pin1 = 44
+pin2 = 45
+
+[sensor14]
+type = motion2
+pin1 = 54
+pin2 = 55
+
+[sensor15]
+type = motion2
+pin1 = 56
+pin2 = 57
+
+[sensor16]
+type = motion2
+pin1 = 58
+pin2 = 59
+
+[sensor17]
+type = motion2
+pin1 = 60
+pin2 = 61
+
+[sensor18]
+type = motion2
+pin1 = 62
+pin2 = 63
+
+[sensor19]
+type = motion2
+pin1 = 64
+pin2 = 65
+
+[sensor20]
+type = switch1_radiator
+pin1 = 7
+pin2 = -1
+
+[sensor21]
+type = reserved
+pin1 = 0
+pin2 = 1
+
+[sensor22]
+type = reserved
+pin1 = 8
+pin2 = -1
+
+[sensor23]
+type = reserved
+pin1 = 13
+pin2 = -1
+
+[sensor24]
+type = reserved
+pin1 = 50
+pin2 = 51
+
+[sensor25]
+type = reserved
+pin1 = 52
+pin2 = 53
