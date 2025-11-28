@@ -20,7 +20,6 @@ byte mac[6] = {0,0,0,0,0,0};
 // CHANGEME: Here is where you assign hardware pins to "sensor types."
 // See also: https://github.com/mkachline/guarduino/wiki
 // See also: https://content.arduino.cc/assets/Pinout-Mega2560rev3_latest.pdf
-#define ONE_WIRE_GPIO 8 // Don't change this unless you have a good reason.
 // Statically allocated sensor table (max 64). Populated by `readConfig_SD()`.
 baseSensor_t allSensors[64] = { };
 // No changes needed from here down.
