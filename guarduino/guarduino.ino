@@ -41,12 +41,22 @@ void setup() {
     Serial.print(GUARDUINO_URL);
     Serial.print(" version: ");
     Serial.println(SOFTWARE_VERSION);
-    // Load runtime configuration from SD card (guarduino.json)
-    if (!readSDConfig("guarduino.json")) {
-        Serial.println("guarduino.json load error. Rebooting in 10 seconds...");
+
+    // Set these pins for Ethernet and SDCard to cooporate.
+    pinMode(4, OUTPUT);  // SD CS
+    pinMode(10, OUTPUT); // Ethernet CS
+
+
+    digitalWrite(4, HIGH); // SD Off
+    digitalWrite(10, HIGH); // Ethernet Off
+    if (!readSDConfig("CONFIG.JSN")) {
+        Serial.println("CONFIG.JSN load error. Rebooting in 10 seconds...");
         delay(10000);
         asm volatile ("jmp 0");  // Reboot by jumping to address 0
     }
+    digitalWrite(4, HIGH); // SD Off
+    digitalWrite(10, HIGH); // Ethernet Off
+
     pubsubClient.setBufferSize( MQTT_MAX_PACKET_SIZE + 256);
     pubsubClient.setServer(mqtt_address, mqtt_port);
     pubsubClient.setCallback(mqttCallback);

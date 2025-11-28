@@ -2,4 +2,5 @@
 guarduino/.vscode
 guarduino/bin
 guarduino/build
+guarduino/guarduino.json
 *.json

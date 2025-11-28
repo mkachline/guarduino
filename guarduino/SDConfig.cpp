@@ -5,6 +5,7 @@
 #include "guarduino.h"
 #include <ctype.h>
 
+#define DEFAULT_FILENAME "CONFIG.JSN"
 #define MQTT_DEFAULT_PORT 1883
 
 // Note: adjust this chip select pin to match your hardware's SD CS pin.
@@ -15,11 +16,49 @@ static const uint8_t SDCARD_CS_PIN = 4;
 static bool macStringToMacAddr(const char *macstr, size_t macstrSize);
 static sensorType sensorTypeFromString(const char *s);
 static bool isPinReserved(int pin);
+static void printDirectory(File dir, int numTabs);
+
 
 // Read the JSON config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
 bool readSDConfig(const char *filepath) {
 
-    Serial.println("Initializing SD card using pin");
+
+	Sd2Card card;
+	if(! card.init(SPI_HALF_SPEED, SDCARD_CS_PIN)) {
+		Serial.println("Sd2Card.init() failed.");
+		return false;
+	}
+	switch (card.type()) {
+	    case SD_CARD_TYPE_SD1:
+	      Serial.println("SD Card Type: SD1");
+	      break;
+
+	    case SD_CARD_TYPE_SD2:
+	      Serial.println("SD Card Type: SD2");
+	      break;
+
+	    case SD_CARD_TYPE_SDHC:
+	      Serial.println("SD Card Type: SDHC");
+	      break;
+
+	    default:
+	      Serial.println("SD Card Type: Unknown");
+	}
+
+
+	SdVolume volume;
+	if (!volume.init(card)) {
+		Serial.println("Could not find FAT16/FAT32 partition.");
+		Serial.println("Please validte your SD card partition is formatted either FAT16 or FAT32.");
+		Serial.println("Note: exFAT is NOT supported.");
+		return false;
+	} else {
+		Serial.println("Found FAT16/FAT32 partition on SD Card.");
+	}
+
+
+
+    Serial.print("Initializing SD card using pin ");
     Serial.print(SDCARD_CS_PIN);
     Serial.println("...");
     for(int i = 0; i < 5; i++) {
@@ -36,19 +75,36 @@ bool readSDConfig(const char *filepath) {
         }   
     }
 
+
+	// Validate File exists.
+	if(SD.exists(filepath)) {
+		Serial.print("Found SD Card File: ");
+		Serial.println(filepath);
+	} else {
+		Serial.print("File: ");
+		Serial.print(filepath);
+		Serial.println(" not found on SD Card.");
+		Serial.println(" Files Found on Card .....");
+		File root = SD.open("/");
+		printDirectory(root, 0);
+		return false;
+	}
+
+
     File f = SD.open(filepath, FILE_READ);
     if (!f) {
-        Serial.println("guarduino.json not found on SD card");
+        Serial.println("Cannot Open SDCard File:" DEFAULT_FILENAME);
         return false;
     }
 
     // Read file into memory-limited JSON document
-    const size_t capacity = 2048;
+    const size_t capacity = 256;
     StaticJsonDocument<capacity> doc;
     DeserializationError err = deserializeJson(doc, f);
     f.close();
     if (err) {
-        Serial.print("Failed parse guarduino.json from SD Card. Err: ");
+        Serial.print("Failed to parse SDCard File: " DEFAULT_FILENAME);
+        Serial.print(" Err: ");
         Serial.println(err.c_str());
         return false;
     }
@@ -63,11 +119,11 @@ bool readSDConfig(const char *filepath) {
             const size_t MAX_MAC_LEN = 32; // generous upper bound for MAC string
             while (maclen < MAX_MAC_LEN && macstr[maclen] != '\0') maclen++;
             if (!macStringToMacAddr(macstr, maclen)) {
-                Serial.println("Invalid macaddress in guarduino.json");
+                Serial.println("Invalid macaddress in " DEFAULT_FILENAME);
             }
         }
     } else {
-        Serial.println("Warning: 'macaddress' missing from guarduino.json");
+        Serial.println("Warning: 'macaddress' missing from " DEFAULT_FILENAME);
         return false;
     }
 
@@ -86,7 +142,7 @@ bool readSDConfig(const char *filepath) {
             }
         }
     } else {
-        Serial.println("Warning: 'mqtt_address' missing from guarduino.json");
+        Serial.println("Warning: 'mqtt_address' missing from " DEFAULT_FILENAME);
         return false; 
     }
 
@@ -95,7 +151,8 @@ bool readSDConfig(const char *filepath) {
         mqtt_port = doc["mqtt_port"].as<int>();
     } else {
         // tell user mqtt_port is missing, using default, and what that default is
-        Serial.print("Warning: 'mqtt_port' missing from guarduino.json; assuming default port ");
+        Serial.print("Warning: 'mqtt_port' missing from " DEFAULT_FILENAME);
+	Serial.print(" Assuming default port ");
         Serial.println(MQTT_DEFAULT_PORT);
     }
 
@@ -107,8 +164,8 @@ bool readSDConfig(const char *filepath) {
             strncpy(mqtt_username, u, sizeof(mqtt_username)-1);
         }
     } else {
-        // tell usermqtt_username is missing from guarduino.json
-        Serial.println("Warning: 'mqtt_username' missing from guarduino.json");
+        // tell usermqtt_username is missing from configfile
+        Serial.println("Warning: 'mqtt_username' missing from " DEFAULT_FILENAME);
         return false;
     }
 
@@ -120,8 +177,8 @@ bool readSDConfig(const char *filepath) {
             strncpy(mqtt_password, p, sizeof(mqtt_password)-1);
         }
     } else {
-        // Tell user mqtt_password is missing from guarduino.json
-        Serial.println("Warning: 'mqtt_password' missing from guarduino.json");
+        // Tell user mqtt_password is missing from configfile
+        Serial.println("Warning: 'mqtt_password' missing from " DEFAULT_FILENAME);
         return false;
     }
 
@@ -161,7 +218,7 @@ bool readSDConfig(const char *filepath) {
         
         // remaining entries already set to unused above
     } else {
-        Serial.println("Warning: 'sensors' array missing from guarduino.json");
+        Serial.println("Warning: 'sensors' array missing from " DEFAULT_FILENAME);
         Serial.println("Example 'sensors' array:");
         Serial.println(R"([
   { "type": "door2", "pin1": 5 },
@@ -171,7 +228,7 @@ bool readSDConfig(const char *filepath) {
     }
 
 
-    Serial.println("Loaded configuration from guarduino.json");
+    Serial.println("Loaded configuration from " DEFAULT_FILENAME);
     return true;
 }
 
@@ -247,3 +304,71 @@ static sensorType sensorTypeFromString(const char *s) {
     if (strncmp(s, "switch1_alarmlight", MAX_TYPE_LEN) == 0) return switch1_alarmlight;
     return unused;
 }
+
+
+
+static void printDirectory(File dir, int numTabs) {
+
+
+  while (true) {
+
+
+    File entry =  dir.openNextFile();
+
+
+    if (! entry) {
+
+
+      // no more files
+
+
+      break;
+
+
+    }
+
+
+    for (uint8_t i = 0; i < numTabs; i++) {
+
+
+      Serial.print('\t');
+
+
+    }
+
+
+    Serial.print(entry.name());
+
+
+    if (entry.isDirectory()) {
+
+
+      Serial.println("/");
+
+
+      printDirectory(entry, numTabs + 1);
+
+
+    } else {
+
+
+      // files have sizes, directories do not
+
+
+      Serial.print("\t\t");
+
+
+      Serial.println(entry.size(), DEC);
+
+
+    }
+
+
+    entry.close();
+
+
+  }
+
+}
+
+
