@@ -25,9 +25,15 @@ clean:
 	rm -vf build/guarduino.*
 
 
-upload:
-	avrdude -v -D -U flash:w:build/guarduino.ino.hex -P /dev/ttyACM0 -b 115200 -c wiring -p m2560
+.PHONY: install
+install:
+	arduino-cli board list
+	arduino-cli upload -b arduino:avr:mega -p /dev/ttyACM0 --verbose ./guarduino.ino
+	#avrdude -v -D -U flash:w:build/guarduino.ino.hex -P /dev/ttyACM0 -b 115200 -c wiring -p m2560
+	arduino-cli monitor -p /dev/ttyACM0 -b arduino:avr:mega --config 115200
 
-tail:
-	stty -F /dev/ttyACM0 raw 115200
-	cat /dev/ttyACM0
+.PHONY: log
+log:
+	arduino-cli monitor -p /dev/ttyACM0 -b arduino:avr:mega --config 115200
+	#stty -F /dev/ttyACM0 raw 115200
+	#cat /dev/ttyACM0
