@@ -18,22 +18,25 @@ static bool isPinReserved(int pin);
 
 // Read the JSON config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
 bool readSDConfig(const char *filepath) {
-    // Clear globals that we'll populate
-    memset(mqtt_password, '\0', sizeof(mqtt_password));
-    memset(mqtt_username, '\0', sizeof(mqtt_username));
-    mqtt_port = MQTT_DEFAULT_PORT;
-    for (int i = 0; i < 6; ++i) mac[i] = 0;
-    // zero sensors
-    for (int i = 0; i < 64; ++i) { allSensors[i].type = unused; allSensors[i].pin1 = -1; allSensors[i].pin2 = -1; }
 
-    if (!SD.begin(SDCARD_CS_PIN)) {
-        Serial.print("SD.begin() failed - SD card unavailable or wrong CS pin (using pin ");
-        Serial.print(SDCARD_CS_PIN);
-        Serial.println(")");
-        return false;
+    Serial.println("Initializing SD card using pin");
+    Serial.print(SDCARD_CS_PIN);
+    Serial.println("...");
+    for(int i = 0; i < 5; i++) {
+        if (!SD.begin(SDCARD_CS_PIN)) {
+            Serial.print(".");
+            delay(2000);
+            continue;
+        } else {
+            break;
+        }
+        if(i == 4) {
+            Serial.println("SD.begin() failed to initialize.");
+            return false;
+        }   
     }
 
-    File f = SD.open(filepath);
+    File f = SD.open(filepath, FILE_READ);
     if (!f) {
         Serial.println("guarduino.json not found on SD card");
         return false;
@@ -51,6 +54,7 @@ bool readSDConfig(const char *filepath) {
     }
 
     // macaddress
+    for (int i = 0; i < 6; ++i) mac[i] = 0; // Zero out Mac address
     if (doc.containsKey("macaddress")) {
         const char *macstr = doc["macaddress"];
         if (macstr) {
@@ -68,7 +72,9 @@ bool readSDConfig(const char *filepath) {
     }
 
 
-    // mqtt settings
+    // mqtt settings    
+    mqtt_address = IPAddress(127, 0, 0, 1);
+    memset(&mqtt_address, 0, sizeof(mqtt_address));
     if (doc.containsKey("mqtt_address")) {
         const char *ipstr = doc["mqtt_address"];
         if (ipstr) {
@@ -93,7 +99,7 @@ bool readSDConfig(const char *filepath) {
         Serial.println(MQTT_DEFAULT_PORT);
     }
 
-
+    memset(mqtt_username, '\0', sizeof(mqtt_username));
     if (doc.containsKey("mqtt_username")) {
         const char *u = doc["mqtt_username"];
         if (u) {
@@ -106,6 +112,7 @@ bool readSDConfig(const char *filepath) {
         return false;
     }
 
+    memset(mqtt_password, '\0', sizeof(mqtt_password));
     if (doc.containsKey("mqtt_password")) {
         const char *p = doc["mqtt_password"];
         if (p) {
@@ -120,6 +127,7 @@ bool readSDConfig(const char *filepath) {
 
 
     // sensors array
+    for (int i = 0; i < 64; ++i) { allSensors[i].type = unused; allSensors[i].pin1 = -1; allSensors[i].pin2 = -1; } // Zero sensors
     if (doc.containsKey("sensors")) {
         JsonArray arr = doc["sensors"].as<JsonArray>();
         int idx = 0;
