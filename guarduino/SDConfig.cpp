@@ -3,6 +3,7 @@
 #include <SD.h>
 #include <ArduinoJson.h>
 #include "guarduino.h"
+#include <ctype.h>
 
 // Note: adjust this chip select pin to match your hardware's SD CS pin.
 // Common values are 4 or 10 depending on shield/module.
@@ -99,4 +100,56 @@ void readSDConfig(const char *filepath) {
     }
 
     Serial.println("Loaded configuration from guarduino.json");
+}
+
+
+// Parse a MAC address string like "01:23:45:67:89:ab" or "01-23-45-67-89-ab" or "0123456789ab"
+// Populate the global `mac[6]` array on success. Returns true on success.
+static bool macStringToMacAddr(const char *macstr, size_t macstrSize) {
+    if (!macstr || macstrSize <= 0) return false;
+    uint8_t tmp[6] = {0,0,0,0,0,0};
+    int nibbleCount = 0;
+
+    for (size_t i = 0; i < macstrSize; ++i) {
+        char c = macstr[i];
+        if (c == ':' || c == '-' || c == '\0') continue;
+        if (!isxdigit((unsigned char)c)) return false;
+        int val = 0;
+        if (c >= '0' && c <= '9') val = c - '0';
+        else if (c >= 'a' && c <= 'f') val = 10 + (c - 'a');
+        else if (c >= 'A' && c <= 'F') val = 10 + (c - 'A');
+        else return false;
+
+        int byteIndex = nibbleCount / 2;
+        if (byteIndex >= 6) return false; // too many nibbles
+        if ((nibbleCount % 2) == 0) {
+            tmp[byteIndex] = (uint8_t)(val << 4);
+        } else {
+            tmp[byteIndex] |= (uint8_t)val;
+        }
+        ++nibbleCount;
+    }
+
+    if (nibbleCount != 12) return false; // must be exactly 12 hex digits
+
+    for (int i = 0; i < 6; ++i) {
+        mac[i] = tmp[i];
+    }
+    return true;
+}
+
+
+static sensorType sensorTypeFromString(const char *s) {
+    if (!s) return unused;
+    if (strcmp(s, "door2") == 0) return door2;
+    if (strcmp(s, "garagedoor2") == 0) return garagedoor2;
+    if (strcmp(s, "window2") == 0) return window2;
+    if (strcmp(s, "motion2") == 0) return motion2;
+    if (strcmp(s, "motion2_laser") == 0) return motion2_laser;
+    if (strcmp(s, "switch1") == 0) return switch1;
+    if (strcmp(s, "switch1_radiator") == 0) return switch1_radiator;
+    if (strcmp(s, "switch1_fan") == 0) return switch1_fan;
+    if (strcmp(s, "switch1_fire") == 0) return switch1_fire;
+    if (strcmp(s, "switch1_alarmlight") == 0) return switch1_alarmlight;
+    return unused;
 }
