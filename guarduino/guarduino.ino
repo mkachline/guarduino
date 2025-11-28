@@ -42,7 +42,11 @@ void setup() {
     Serial.print(" version: ");
     Serial.println(SOFTWARE_VERSION);
     // Load runtime configuration from SD card (guarduino.json)
-    readSDConfig("guarduino.json");
+    if (!readSDConfig("guarduino.json")) {
+        Serial.println("guarduino.json load error. Rebooting in 10 seconds...");
+        delay(10000);
+        asm volatile ("jmp 0");  // Reboot by jumping to address 0
+    }
     pubsubClient.setBufferSize( MQTT_MAX_PACKET_SIZE + 256);
     pubsubClient.setServer(mqtt_address, mqtt_port);
     pubsubClient.setCallback(mqttCallback);

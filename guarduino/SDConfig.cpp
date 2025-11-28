@@ -17,7 +17,7 @@ static sensorType sensorTypeFromString(const char *s);
 static bool isPinReserved(int pin);
 
 // Read the JSON config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
-void readSDConfig(const char *filepath) {
+bool readSDConfig(const char *filepath) {
     // Clear globals that we'll populate
     memset(mqtt_password, '\0', sizeof(mqtt_password));
     memset(mqtt_username, '\0', sizeof(mqtt_username));
@@ -30,13 +30,13 @@ void readSDConfig(const char *filepath) {
         Serial.print("SD.begin() failed - SD card unavailable or wrong CS pin (using pin ");
         Serial.print(SDCARD_CS_PIN);
         Serial.println(")");
-        return;
+        return false;
     }
 
     File f = SD.open(filepath);
     if (!f) {
         Serial.println("guarduino.json not found on SD card");
-        return;
+        return false;
     }
 
     // Read file into memory-limited JSON document
@@ -47,7 +47,7 @@ void readSDConfig(const char *filepath) {
     if (err) {
         Serial.print("Failed parse guarduino.json from SD Card. Err: ");
         Serial.println(err.c_str());
-        return;
+        return false;
     }
 
     // macaddress
@@ -64,7 +64,7 @@ void readSDConfig(const char *filepath) {
         }
     } else {
         Serial.println("Warning: 'macaddress' missing from guarduino.json");
-        return;
+        return false;
     }
 
 
@@ -81,7 +81,7 @@ void readSDConfig(const char *filepath) {
         }
     } else {
         Serial.println("Warning: 'mqtt_address' missing from guarduino.json");
-        return; 
+        return false; 
     }
 
     mqtt_port = MQTT_DEFAULT_PORT;
@@ -103,7 +103,7 @@ void readSDConfig(const char *filepath) {
     } else {
         // tell usermqtt_username is missing from guarduino.json
         Serial.println("Warning: 'mqtt_username' missing from guarduino.json");
-        return;
+        return false;
     }
 
     if (doc.containsKey("mqtt_password")) {
@@ -115,7 +115,7 @@ void readSDConfig(const char *filepath) {
     } else {
         // Tell user mqtt_password is missing from guarduino.json
         Serial.println("Warning: 'mqtt_password' missing from guarduino.json");
-        return;
+        return false;
     }
 
 
@@ -159,11 +159,12 @@ void readSDConfig(const char *filepath) {
   { "type": "door2", "pin1": 5 },
   { "type": "motion2", "pin1": 6, "pin2": 7 }
 ])");
-        return;
+        return false;
     }
 
 
     Serial.println("Loaded configuration from guarduino.json");
+    return true;
 }
 
 

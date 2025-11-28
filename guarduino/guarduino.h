@@ -69,7 +69,7 @@ extern ds18x_t *allds18x;
 
 extern byte mac[6];
 extern baseSensor_t allSensors[64];
-extern void readSDConfig(const char *filepath);
+extern bool readSDConfig(const char *filepath);
 
 extern IPAddress mqtt_address;
 extern char mqtt_password[128];
