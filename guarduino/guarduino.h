@@ -7,7 +7,7 @@
 
 #define HA_TOPIC_DATA "aha"                // Mosquitto Data topic. You probably don't need to change this.
 #define HA_TOPIC_DISCOVERY "homeassistant" // Mosquitto Discovery topic. You probably don't need to change this.
-#define SOFTWARE_VERSION "2024.01.16.3"
+#define SOFTWARE_VERSION "2025.11.28.1"
 
 enum sensorType
 {
@@ -66,8 +66,14 @@ typedef struct ds18x_t
 extern unsigned char allds18x_count;
 extern ds18x_t *allds18x;
 
-extern byte mac[];
-extern baseSensor_t allSensors[];
+extern byte mac[6];
+extern baseSensor_t allSensors[64];
+extern void readSDConfig(const char *filepath);
+
+extern IPAddress mqtt_address;
+extern char mqtt_password[128];
+extern int mqtt_port;
+extern char mqtt_username[64];
 extern void mqttCallback(char *topic, byte *payloadBytes, unsigned int length);
 extern bool didCallback;
 extern PubSubClient pubsubClient;
