@@ -26,7 +26,9 @@ void readSDConfig(const char *filepath) {
     for (int i = 0; i < 64; ++i) { allSensors[i].type = unused; allSensors[i].pin1 = -1; allSensors[i].pin2 = -1; }
 
     if (!SD.begin(SDCARD_CS_PIN)) {
-        Serial.println("SD.begin() failed - SD card unavailable or wrong CS pin");
+        Serial.print("SD.begin() failed - SD card unavailable or wrong CS pin (using pin ");
+        Serial.print(SDCARD_CS_PIN);
+        Serial.println(")");
         return;
     }
 
