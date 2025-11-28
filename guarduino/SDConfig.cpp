@@ -14,6 +14,7 @@ static const uint8_t SDCARD_CS_PIN = 4;
 // Forward declarations for helper functions used below.
 static bool macStringToMacAddr(const char *macstr, size_t macstrSize);
 static sensorType sensorTypeFromString(const char *s);
+static bool isPinReserved(int pin);
 
 // Read the JSON config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
 void readSDConfig(const char *filepath) {
@@ -44,7 +45,7 @@ void readSDConfig(const char *filepath) {
     DeserializationError err = deserializeJson(doc, f);
     f.close();
     if (err) {
-        Serial.print("Failed parse guarduino.json: ");
+        Serial.print("Failed parse guarduino.json from SD Card. Err: ");
         Serial.println(err.c_str());
         return;
     }
@@ -61,7 +62,11 @@ void readSDConfig(const char *filepath) {
                 Serial.println("Invalid macaddress in guarduino.json");
             }
         }
+    } else {
+        Serial.println("Warning: 'macaddress' missing from guarduino.json");
+        return;
     }
+
 
     // mqtt settings
     if (doc.containsKey("mqtt_address")) {
@@ -74,11 +79,20 @@ void readSDConfig(const char *filepath) {
                 Serial.println("mqtt_address not a valid IPv4 string; using 0.0.0.0");
             }
         }
+    } else {
+        Serial.println("Warning: 'mqtt_address' missing from guarduino.json");
+        return; 
     }
 
+    mqtt_port = MQTT_DEFAULT_PORT;
     if (doc.containsKey("mqtt_port")) {
         mqtt_port = doc["mqtt_port"].as<int>();
+    } else {
+        // tell user mqtt_port is missing, using default, and what that default is
+        Serial.print("Warning: 'mqtt_port' missing from guarduino.json; assuming default port ");
+        Serial.println(MQTT_DEFAULT_PORT);
     }
+
 
     if (doc.containsKey("mqtt_username")) {
         const char *u = doc["mqtt_username"];
@@ -86,6 +100,10 @@ void readSDConfig(const char *filepath) {
             memset(mqtt_username, '\0', sizeof(mqtt_username));
             strncpy(mqtt_username, u, sizeof(mqtt_username)-1);
         }
+    } else {
+        // tell usermqtt_username is missing from guarduino.json
+        Serial.println("Warning: 'mqtt_username' missing from guarduino.json");
+        return;
     }
 
     if (doc.containsKey("mqtt_password")) {
@@ -94,7 +112,12 @@ void readSDConfig(const char *filepath) {
             memset(mqtt_password, '\0', sizeof(mqtt_password));
             strncpy(mqtt_password, p, sizeof(mqtt_password)-1);
         }
+    } else {
+        // Tell user mqtt_password is missing from guarduino.json
+        Serial.println("Warning: 'mqtt_password' missing from guarduino.json");
+        return;
     }
+
 
     // sensors array
     if (doc.containsKey("sensors")) {
@@ -102,16 +125,43 @@ void readSDConfig(const char *filepath) {
         int idx = 0;
         for (JsonObject obj : arr) {
             if (idx >= 64) break;
+
             const char *type = obj["type"];
             int pin1 = obj["pin1"] | -1;
             int pin2 = obj["pin2"] | -1;
+
+            // Skip sensors that use reserved pins
+            if (isPinReserved(pin1) || isPinReserved(pin2)) {
+                Serial.print("Skipping sensor on reserved pin(s): pin1=");
+                Serial.print(pin1);
+                Serial.print(", pin2=");
+                Serial.println(pin2);
+                continue;
+            }
             allSensors[idx].type = sensorTypeFromString(type);
             allSensors[idx].pin1 = (int8_t)pin1;
             allSensors[idx].pin2 = (int8_t)pin2;
             idx++;
+            // tell user a one-line summary of "this" sensor just read.
+            Serial.print("Loaded sensor: type=");
+            Serial.print(type ? type : "null");
+            Serial.print(", pin1=");
+            Serial.print(pin1);
+            Serial.print(", pin2=");
+            Serial.println(pin2);
         }
+        
         // remaining entries already set to unused above
+    } else {
+        Serial.println("Warning: 'sensors' array missing from guarduino.json");
+        Serial.println("Example 'sensors' array:");
+        Serial.println(R"([
+  { "type": "door2", "pin1": 5 },
+  { "type": "motion2", "pin1": 6, "pin2": 7 }
+])");
+        return;
     }
+
 
     Serial.println("Loaded configuration from guarduino.json");
 }
@@ -152,6 +202,25 @@ static bool macStringToMacAddr(const char *macstr, size_t macstrSize) {
     return true;
 }
 
+
+// Check if this pin is one which is generally "reserved".
+static bool isPinReserved(int pin) {
+    // Reserved pins that cannot be used for sensors
+    const int8_t reservedPins[] = {
+        0, 1,           // Serial (RX/TX)
+        SDCARD_CS_PIN,  // SD card CS (pin 4)
+        ONE_WIRE_GPIO,  // OneWire for DS18x sensors (pin 8)
+        10,             // Ethernet CS (W5x00 default)
+        50, 51, 52, 53  // SPI bus (MISO, MOSI, SCK, SS)
+    };
+    const size_t reservedPinsCount = sizeof(reservedPins) / sizeof(reservedPins[0]);
+
+    if (pin < 0) return false; // -1 means unused/unset
+    for (size_t i = 0; i < reservedPinsCount; i++) {
+        if (reservedPins[i] == pin) return true;
+    }
+    return false;
+}
 
 static sensorType sensorTypeFromString(const char *s) {
     if (!s) return unused;
