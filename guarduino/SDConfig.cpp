@@ -1,11 +1,10 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
-#include <ArduinoJson.h>
+#include <IniFile.h>
 #include "guarduino.h"
 #include <ctype.h>
 
-#define DEFAULT_FILENAME "CONFIG.JSN"
 #define MQTT_DEFAULT_PORT 1883
 
 // Note: adjust this chip select pin to match your hardware's SD CS pin.
@@ -19,44 +18,39 @@ static bool isPinReserved(int pin);
 static void printDirectory(File dir, int numTabs);
 
 
-// Read the JSON config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
+// Read the INI config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
 bool readSDConfig(const char *filepath) {
+    Sd2Card card;
+    if(! card.init(SPI_HALF_SPEED, SDCARD_CS_PIN)) {
+        Serial.println("Sd2Card.init() failed.");
+        return false;
+    }
+    switch (card.type()) {
+        case SD_CARD_TYPE_SD1:
+          Serial.println("SD Card Type: SD1");
+          break;
 
+        case SD_CARD_TYPE_SD2:
+          Serial.println("SD Card Type: SD2");
+          break;
 
-	Sd2Card card;
-	if(! card.init(SPI_HALF_SPEED, SDCARD_CS_PIN)) {
-		Serial.println("Sd2Card.init() failed.");
-		return false;
-	}
-	switch (card.type()) {
-	    case SD_CARD_TYPE_SD1:
-	      Serial.println("SD Card Type: SD1");
-	      break;
+        case SD_CARD_TYPE_SDHC:
+          Serial.println("SD Card Type: SDHC");
+          break;
 
-	    case SD_CARD_TYPE_SD2:
-	      Serial.println("SD Card Type: SD2");
-	      break;
+        default:
+          Serial.println("SD Card Type: Unknown");
+    }
 
-	    case SD_CARD_TYPE_SDHC:
-	      Serial.println("SD Card Type: SDHC");
-	      break;
-
-	    default:
-	      Serial.println("SD Card Type: Unknown");
-	}
-
-
-	SdVolume volume;
-	if (!volume.init(card)) {
-		Serial.println("Could not find FAT16/FAT32 partition.");
-		Serial.println("Please validte your SD card partition is formatted either FAT16 or FAT32.");
-		Serial.println("Note: exFAT is NOT supported.");
-		return false;
-	} else {
-		Serial.println("Found FAT16/FAT32 partition on SD Card.");
-	}
-
-
+    SdVolume volume;
+    if (!volume.init(card)) {
+        Serial.println("Could not find FAT16/FAT32 partition.");
+        Serial.println("Please validte your SD card partition is formatted either FAT16 or FAT32.");
+        Serial.println("Note: exFAT is NOT supported.");
+        return false;
+    } else {
+        Serial.println("Found FAT16/FAT32 partition on SD Card.");
+    }
 
     Serial.print("Initializing SD card using pin ");
     Serial.print(SDCARD_CS_PIN);
@@ -75,160 +69,174 @@ bool readSDConfig(const char *filepath) {
         }   
     }
 
-
-	// Validate File exists.
-	if(SD.exists(filepath)) {
-		Serial.print("Found SD Card File: ");
-		Serial.println(filepath);
-	} else {
-		Serial.print("File: ");
-		Serial.print(filepath);
-		Serial.println(" not found on SD Card.");
-		Serial.println(" Files Found on Card .....");
-		File root = SD.open("/");
-		printDirectory(root, 0);
-		return false;
-	}
-
-
-    File f = SD.open(filepath, FILE_READ);
-    if (!f) {
-        Serial.println("Cannot Open SDCard File:" DEFAULT_FILENAME);
-        return false;
-    }
-
-    // Read file into memory-limited JSON document
-    const size_t capacity = 256;
-    StaticJsonDocument<capacity> doc;
-    DeserializationError err = deserializeJson(doc, f);
-    f.close();
-    if (err) {
-        Serial.print("Failed to parse SDCard File: " DEFAULT_FILENAME);
-        Serial.print(" Err: ");
-        Serial.println(err.c_str());
-        return false;
-    }
-
-    // macaddress
-    for (int i = 0; i < 6; ++i) mac[i] = 0; // Zero out Mac address
-    if (doc.containsKey("macaddress")) {
-        const char *macstr = doc["macaddress"];
-        if (macstr) {
-            // Use strnlen with a max bound to avoid unbounded strlen
-            size_t maclen = 0;
-            const size_t MAX_MAC_LEN = 32; // generous upper bound for MAC string
-            while (maclen < MAX_MAC_LEN && macstr[maclen] != '\0') maclen++;
-            if (!macStringToMacAddr(macstr, maclen)) {
-                Serial.println("Invalid macaddress in " DEFAULT_FILENAME);
-            }
-        }
+    // Validate File exists.
+    if(SD.exists(filepath)) {
+        Serial.print("Found SD Card File: ");
+        Serial.println(filepath);
     } else {
-        Serial.println("Warning: 'macaddress' missing from " DEFAULT_FILENAME);
+        Serial.print("File: ");
+        Serial.print(filepath);
+        Serial.println(" not found on SD Card.");
+        Serial.println(" Files Found on Card .....");
+        File root = SD.open("/");
+        printDirectory(root, 0);
         return false;
     }
 
+    // Open the INI file
+    const size_t bufferLen = 80;
+    char buffer[bufferLen];
+    IniFile ini(filepath);
+    
+    if (!ini.open()) {
+        Serial.print("Cannot Open INI File: ");
+        Serial.println(filepath);
+        return false;
+    }
 
-    // mqtt settings    
+    if (!ini.validate(buffer, bufferLen)) {
+        Serial.print("INI file ");
+        Serial.print(filepath);
+        Serial.print(" not valid: ");
+        Serial.println(buffer);
+        ini.close();
+        return false;
+    }
+
+    // Read macaddress from [network] section
+    for (int i = 0; i < 6; ++i) mac[i] = 0; // Zero out Mac address
+    if (ini.getValue("network", "macaddress", buffer, bufferLen)) {
+        size_t maclen = strlen(buffer);
+        if (!macStringToMacAddr(buffer, maclen)) {
+            Serial.print("Invalid macaddress in ");
+            Serial.println(filepath);
+            ini.close();
+            return false;
+        }
+        Serial.print("Read macaddress: ");
+        Serial.println(buffer);
+    } else {
+        Serial.print("Warning: 'macaddress' missing from ");
+        Serial.println(filepath);
+        ini.close();
+        return false;
+    }
+
+    // Read MQTT address
     mqtt_address = IPAddress(127, 0, 0, 1);
     memset(&mqtt_address, 0, sizeof(mqtt_address));
-    if (doc.containsKey("mqtt_address")) {
-        const char *ipstr = doc["mqtt_address"];
-        if (ipstr) {
-            unsigned int a,b,c,d;
-            if (sscanf(ipstr, "%u.%u.%u.%u", &a,&b,&c,&d) == 4) {
-                mqtt_address = IPAddress((uint8_t)a, (uint8_t)b, (uint8_t)c, (uint8_t)d);
-            } else {
-                Serial.println("mqtt_address not a valid IPv4 string; using 0.0.0.0");
-            }
+    if (ini.getValue("network", "mqtt_address", buffer, bufferLen)) {
+        unsigned int a, b, c, d;
+        if (sscanf(buffer, "%u.%u.%u.%u", &a, &b, &c, &d) == 4) {
+            mqtt_address = IPAddress((uint8_t)a, (uint8_t)b, (uint8_t)c, (uint8_t)d);
+            Serial.print("Read mqtt_address: ");
+            Serial.println(buffer);
+        } else {
+            Serial.println("mqtt_address not a valid IPv4 string; using 0.0.0.0");
         }
     } else {
-        Serial.println("Warning: 'mqtt_address' missing from " DEFAULT_FILENAME);
-        return false; 
+        Serial.print("Warning: 'mqtt_address' missing from ");
+        Serial.println(filepath);
+        ini.close();
+        return false;
     }
 
+    // Read MQTT port
     mqtt_port = MQTT_DEFAULT_PORT;
-    if (doc.containsKey("mqtt_port")) {
-        mqtt_port = doc["mqtt_port"].as<int>();
+    if (ini.getValue("network", "mqtt_port", buffer, bufferLen)) {
+        mqtt_port = atoi(buffer);
+        Serial.print("Read mqtt_port: ");
+        Serial.println(buffer);
     } else {
-        // tell user mqtt_port is missing, using default, and what that default is
-        Serial.print("Warning: 'mqtt_port' missing from " DEFAULT_FILENAME);
-	Serial.print(" Assuming default port ");
+        Serial.print("Warning: 'mqtt_port' missing from ");
+        Serial.print(filepath);
+        Serial.print(" Assuming default port ");
         Serial.println(MQTT_DEFAULT_PORT);
     }
 
+    // Read MQTT username
     memset(mqtt_username, '\0', sizeof(mqtt_username));
-    if (doc.containsKey("mqtt_username")) {
-        const char *u = doc["mqtt_username"];
-        if (u) {
-            memset(mqtt_username, '\0', sizeof(mqtt_username));
-            strncpy(mqtt_username, u, sizeof(mqtt_username)-1);
-        }
+    if (ini.getValue("network", "mqtt_username", buffer, bufferLen)) {
+        strncpy(mqtt_username, buffer, sizeof(mqtt_username) - 1);
+        Serial.print("Read mqtt_username: ");
+        Serial.println(buffer);
     } else {
-        // tell usermqtt_username is missing from configfile
-        Serial.println("Warning: 'mqtt_username' missing from " DEFAULT_FILENAME);
+        Serial.print("Warning: 'mqtt_username' missing from ");
+        Serial.println(filepath);
+        ini.close();
         return false;
     }
 
+    // Read MQTT password
     memset(mqtt_password, '\0', sizeof(mqtt_password));
-    if (doc.containsKey("mqtt_password")) {
-        const char *p = doc["mqtt_password"];
-        if (p) {
-            memset(mqtt_password, '\0', sizeof(mqtt_password));
-            strncpy(mqtt_password, p, sizeof(mqtt_password)-1);
-        }
+    if (ini.getValue("network", "mqtt_password", buffer, bufferLen)) {
+        strncpy(mqtt_password, buffer, sizeof(mqtt_password) - 1);
+        Serial.print("Read mqtt_password: ");
+        Serial.println(buffer);
     } else {
-        // Tell user mqtt_password is missing from configfile
-        Serial.println("Warning: 'mqtt_password' missing from " DEFAULT_FILENAME);
+        Serial.print("Warning: 'mqtt_password' missing from ");
+        Serial.println(filepath);
+        ini.close();
         return false;
     }
 
+    // Read sensors - try each sensorN section from sensor0 to sensor63
+    for (int i = 0; i < 64; ++i) { 
+        allSensors[i].type = unused; 
+        allSensors[i].pin1 = -1; 
+        allSensors[i].pin2 = -1; 
+    }
 
-    // sensors array
-    for (int i = 0; i < 64; ++i) { allSensors[i].type = unused; allSensors[i].pin1 = -1; allSensors[i].pin2 = -1; } // Zero sensors
-    if (doc.containsKey("sensors")) {
-        JsonArray arr = doc["sensors"].as<JsonArray>();
-        int idx = 0;
-        for (JsonObject obj : arr) {
-            if (idx >= 64) break;
-
-            const char *type = obj["type"];
-            int pin1 = obj["pin1"] | -1;
-            int pin2 = obj["pin2"] | -1;
-
-            // Skip sensors that use reserved pins
-            if (isPinReserved(pin1) || isPinReserved(pin2)) {
-                Serial.print("Skipping sensor on reserved pin(s): pin1=");
-                Serial.print(pin1);
-                Serial.print(", pin2=");
-                Serial.println(pin2);
-                continue;
-            }
-            allSensors[idx].type = sensorTypeFromString(type);
-            allSensors[idx].pin1 = (int8_t)pin1;
-            allSensors[idx].pin2 = (int8_t)pin2;
-            idx++;
-            // tell user a one-line summary of "this" sensor just read.
-            Serial.print("Loaded sensor: type=");
-            Serial.print(type ? type : "null");
-            Serial.print(", pin1=");
+    int sensorCount = 0;
+    for (int i = 0; i < 64; i++) {
+        char sectionName[16];
+        snprintf(sectionName, sizeof(sectionName), "sensor%d", i);
+        
+        // Check if this sensor section exists
+        if (!ini.getValue(sectionName, "type", buffer, bufferLen)) {
+            // No more sensors defined
+            continue;
+        }
+        
+        const char *type = buffer;
+        
+        // Read pin1
+        int pin1 = -1;
+        if (ini.getValue(sectionName, "pin1", buffer, bufferLen)) {
+            pin1 = atoi(buffer);
+        }
+        
+        // Read pin2
+        int pin2 = -1;
+        if (ini.getValue(sectionName, "pin2", buffer, bufferLen)) {
+            pin2 = atoi(buffer);
+        }
+        
+        // Skip sensors that use reserved pins
+        if (isPinReserved(pin1) || isPinReserved(pin2)) {
+            Serial.print("Skipping sensor on reserved pin(s): pin1=");
             Serial.print(pin1);
             Serial.print(", pin2=");
             Serial.println(pin2);
+            continue;
         }
         
-        // remaining entries already set to unused above
-    } else {
-        Serial.println("Warning: 'sensors' array missing from " DEFAULT_FILENAME);
-        Serial.println("Example 'sensors' array:");
-        Serial.println(R"([
-  { "type": "door2", "pin1": 5 },
-  { "type": "motion2", "pin1": 6, "pin2": 7 }
-])");
-        return false;
+        allSensors[sensorCount].type = sensorTypeFromString(type);
+        allSensors[sensorCount].pin1 = (int8_t)pin1;
+        allSensors[sensorCount].pin2 = (int8_t)pin2;
+        sensorCount++;
+        
+        // tell user a one-line summary of "this" sensor just read.
+        Serial.print("Read sensor: type=");
+        Serial.print(type);
+        Serial.print(", pin1=");
+        Serial.print(pin1);
+        Serial.print(", pin2=");
+        Serial.println(pin2);
     }
+    
+    ini.close();
 
-
-    Serial.println("Loaded configuration from " DEFAULT_FILENAME);
     return true;
 }
 
@@ -308,67 +316,30 @@ static sensorType sensorTypeFromString(const char *s) {
 
 
 static void printDirectory(File dir, int numTabs) {
+    while (true) {
+        File entry = dir.openNextFile();
+        if (!entry) {
+            // no more files
+            break;
+        }
 
+        for (uint8_t i = 0; i < numTabs; i++) {
+            Serial.print('\t');
+        }
 
-  while (true) {
+        Serial.print(entry.name());
 
+        if (entry.isDirectory()) {
+            Serial.println("/");
+            printDirectory(entry, numTabs + 1);
+        } else {
+            // files have sizes, directories do not
+            Serial.print("\t\t");
+            Serial.println(entry.size(), DEC);
+        }
 
-    File entry =  dir.openNextFile();
-
-
-    if (! entry) {
-
-
-      // no more files
-
-
-      break;
-
-
+        entry.close();
     }
-
-
-    for (uint8_t i = 0; i < numTabs; i++) {
-
-
-      Serial.print('\t');
-
-
-    }
-
-
-    Serial.print(entry.name());
-
-
-    if (entry.isDirectory()) {
-
-
-      Serial.println("/");
-
-
-      printDirectory(entry, numTabs + 1);
-
-
-    } else {
-
-
-      // files have sizes, directories do not
-
-
-      Serial.print("\t\t");
-
-
-      Serial.println(entry.size(), DEC);
-
-
-    }
-
-
-    entry.close();
-
-
-  }
-
 }
 
 

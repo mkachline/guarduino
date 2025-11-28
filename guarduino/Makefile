@@ -6,7 +6,7 @@ build/guarduino.ino.hex: arduino-libs
 
 
 ARDUINO_LIBS = \
-  ArduinoJson \
+  IniFile \
   BoardIdentify \
   DallasTemperature \
   Ethernet \

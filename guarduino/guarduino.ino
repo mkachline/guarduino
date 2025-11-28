@@ -49,8 +49,8 @@ void setup() {
 
     digitalWrite(4, HIGH); // SD Off
     digitalWrite(10, HIGH); // Ethernet Off
-    if (!readSDConfig("CONFIG.JSN")) {
-        Serial.println("CONFIG.JSN load error. Rebooting in 10 seconds...");
+    if (!readSDConfig("CONFIG.INI")) {
+        Serial.println("CONFIG.INI load error. Rebooting in 10 seconds...");
         delay(10000);
         asm volatile ("jmp 0");  // Reboot by jumping to address 0
     }
