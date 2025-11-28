@@ -49,7 +49,11 @@ void readSDConfig(const char *filepath) {
     if (doc.containsKey("macaddress")) {
         const char *macstr = doc["macaddress"];
         if (macstr) {
-            if (!macStringToMacAddr(macstr, strlen(macstr))) {
+            // Use strnlen with a max bound to avoid unbounded strlen
+            size_t maclen = 0;
+            const size_t MAX_MAC_LEN = 32; // generous upper bound for MAC string
+            while (maclen < MAX_MAC_LEN && macstr[maclen] != '\0') maclen++;
+            if (!macStringToMacAddr(macstr, maclen)) {
                 Serial.println("Invalid macaddress in guarduino.json");
             }
         }
@@ -74,12 +78,18 @@ void readSDConfig(const char *filepath) {
 
     if (doc.containsKey("mqtt_username")) {
         const char *u = doc["mqtt_username"];
-        if (u) strncpy(mqtt_username, u, sizeof(mqtt_username)-1);
+        if (u) {
+            memset(mqtt_username, '\0', sizeof(mqtt_username));
+            strncpy(mqtt_username, u, sizeof(mqtt_username)-1);
+        }
     }
 
     if (doc.containsKey("mqtt_password")) {
         const char *p = doc["mqtt_password"];
-        if (p) strncpy(mqtt_password, p, sizeof(mqtt_password)-1);
+        if (p) {
+            memset(mqtt_password, '\0', sizeof(mqtt_password));
+            strncpy(mqtt_password, p, sizeof(mqtt_password)-1);
+        }
     }
 
     // sensors array
@@ -141,15 +151,17 @@ static bool macStringToMacAddr(const char *macstr, size_t macstrSize) {
 
 static sensorType sensorTypeFromString(const char *s) {
     if (!s) return unused;
-    if (strcmp(s, "door2") == 0) return door2;
-    if (strcmp(s, "garagedoor2") == 0) return garagedoor2;
-    if (strcmp(s, "window2") == 0) return window2;
-    if (strcmp(s, "motion2") == 0) return motion2;
-    if (strcmp(s, "motion2_laser") == 0) return motion2_laser;
-    if (strcmp(s, "switch1") == 0) return switch1;
-    if (strcmp(s, "switch1_radiator") == 0) return switch1_radiator;
-    if (strcmp(s, "switch1_fan") == 0) return switch1_fan;
-    if (strcmp(s, "switch1_fire") == 0) return switch1_fire;
-    if (strcmp(s, "switch1_alarmlight") == 0) return switch1_alarmlight;
+    // Use bounded string comparison (max 32 chars for sensor type names)
+    const size_t MAX_TYPE_LEN = 32;
+    if (strncmp(s, "door2", MAX_TYPE_LEN) == 0) return door2;
+    if (strncmp(s, "garagedoor2", MAX_TYPE_LEN) == 0) return garagedoor2;
+    if (strncmp(s, "window2", MAX_TYPE_LEN) == 0) return window2;
+    if (strncmp(s, "motion2", MAX_TYPE_LEN) == 0) return motion2;
+    if (strncmp(s, "motion2_laser", MAX_TYPE_LEN) == 0) return motion2_laser;
+    if (strncmp(s, "switch1", MAX_TYPE_LEN) == 0) return switch1;
+    if (strncmp(s, "switch1_radiator", MAX_TYPE_LEN) == 0) return switch1_radiator;
+    if (strncmp(s, "switch1_fan", MAX_TYPE_LEN) == 0) return switch1_fan;
+    if (strncmp(s, "switch1_fire", MAX_TYPE_LEN) == 0) return switch1_fire;
+    if (strncmp(s, "switch1_alarmlight", MAX_TYPE_LEN) == 0) return switch1_alarmlight;
     return unused;
 }
