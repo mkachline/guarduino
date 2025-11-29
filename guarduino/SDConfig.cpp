@@ -75,10 +75,7 @@ bool readSDConfig(const char *filepath) {
     }
 
     // Validate File exists.
-    if(SD.exists(filepath)) {
-        Serial.print("Found SD Card File: ");
-        Serial.println(filepath);
-    } else {
+    if(! SD.exists(filepath)) {
         Serial.print("File: ");
         Serial.print(filepath);
         Serial.println(" not found on SD Card.");

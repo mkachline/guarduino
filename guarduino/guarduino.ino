@@ -87,10 +87,11 @@ void loop() {
 
     if(! mqttConnected) {
         Serial.println("MQTT NOT Connected");
-        setupEthernet();
-        pubsubReconnect();
-        setupSensors(allSensors, sizeof(allSensors));        
-        setupDS18Sensors();        
+        if (setupEthernet()) {
+          pubsubReconnect();
+          setupSensors(allSensors, sizeof(allSensors));
+          setupDS18Sensors();
+        }
         return;
     }
     pubsubClient.loop();
@@ -132,10 +133,22 @@ void loop() {
 }
 
 
-void pubsubReconnect(void) {
+bool pubsubReconnect(void) {
 
     char deviceName[24];
     getDeviceName(deviceName, sizeof(deviceName));
+    // Validate deviceName is not ""
+    if (strlen(deviceName) == 0) {  
+        Serial.println("Invalid device name; cannot connect to MQTT.");
+        return false;
+    }
+    //Validate mqtt_username is not ""
+    if (strlen(mqtt_username) == 0) {  
+        Serial.println("Invalid MQTT username; cannot connect to MQTT.");
+        return false;
+    }
+    //Maybe(?) empty mqtt password is allowed? Do not validate that.
+    
 
     if(! pubsubClient.connected()) {
       setupEthernet();
@@ -159,7 +172,7 @@ void pubsubReconnect(void) {
         Serial.println("");
         Serial.println(deviceName);
 
-        return;
+        return false;
       }
     }
 
@@ -169,6 +182,7 @@ void pubsubReconnect(void) {
     mqttSensorSendDiscovery(0);
     //pubsubClient.subscribe(HA_TOPIC_DATA);    
 
+    return true;
 }
 
 
