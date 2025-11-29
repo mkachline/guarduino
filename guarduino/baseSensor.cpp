@@ -100,7 +100,10 @@ void getDeviceName(char *destbuf, size_t destbufsize) {
 
 
 void getSensorName(char *destbuf, size_t destbufsize, baseSensor_t thisSensor) {
-  if(destbufsize < strlen("someplaceholder_NNNN_NNNNNN")) return;
+  if(destbufsize < strlen("someplaceholder_NNNN_NNNNNN")) {
+    Serial.println("Developer bug getSensorName(). Please use a longer destbuf. Suggest >= 48 bytes.");
+    return;
+  }
   
   byte macBytes[6];
   Ethernet.MACAddress(macBytes); // https://www.arduino.cc/reference/en/libraries/ethernet/ethernet.macaddress/  
@@ -688,7 +691,7 @@ size_t mqttsend(const bool shouldSend, const char *nulltermstring) {
 void setupSensors(baseSensor_t *sensors, size_t sensorsSize) 
 {
   int sensorCount = sensorsSize / sizeof(baseSensor_t);
-  char sensorName[24];
+  char sensorName[48];
   char *sensorCommandTopic = NULL;
 
   // Onboard LED.

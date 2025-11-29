@@ -61,11 +61,12 @@ void setup() {
     pubsubClient.setServer(mqtt_address, mqtt_port);
     pubsubClient.setCallback(mqttCallback);
     
-    setupEthernet();
-    setupSensors(allSensors, sizeof(allSensors));    
-    setupDS18Sensors();
+    if (setupEthernet()) {
+      setupSensors(allSensors, sizeof(allSensors));    
+      setupDS18Sensors();
 
-    oldPinReadings = readSensors(0, allSensors, sizeof(allSensors));   
+      oldPinReadings = readSensors(0, allSensors, sizeof(allSensors));
+    }
     FREERAM_PRINT; // https://github.com/Locoduino/MemoryUsage/tree/master    
 }
 
@@ -190,22 +191,27 @@ void mqttCallback(char *topic, byte *payloadBytes, unsigned int length) {
 
 
 
-static void setupEthernet(void) {
+static bool setupEthernet(void) {
+
+    // Validate "mac" is populated (not all zeros). Log such, and return false if not.
+    bool macIsValid = false;
+    for (size_t i = 0; i < 6; i++) {
+        if (mac[i] != 0) {
+            macIsValid = true;
+            break;;
+        }
+    }
+    if (!macIsValid) {
+        Serial.println("Invalid MAC address; cannot setup Ethernet.");
+        return false;
+    }
 
     Ethernet.begin(mac);
     delay(2000); // Let DHCP do it's thing.
-   
-    if(Ethernet.linkStatus() == Unknown) {
-      Serial.println("Ethernet.linkStatus(): Unknown");
-    }    
-    if(Ethernet.linkStatus() == LinkON) {
-      Serial.println("Ethernet.linkStatus(): On");
-    }
-    if(Ethernet.linkStatus() == LinkOFF) {
-      Serial.println("Ethernet.linkStatus(): OFF");
-    }
+
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-      Serial.println("Ethernet shield was not found.");
+      Serial.println("Ethernet hardware not found.");
+      return false;
     } else if (Ethernet.hardwareStatus() == EthernetW5100) {
       Serial.println("W5100 Ethernet controller detected.");
     } else if (Ethernet.hardwareStatus() == EthernetW5200) {
@@ -213,6 +219,20 @@ static void setupEthernet(void) {
     } else if (Ethernet.hardwareStatus() == EthernetW5500) {
       Serial.println("W5500 Ethernet controller detected.");
     }
+    
+    
+    if(Ethernet.linkStatus() == Unknown) {
+      Serial.println("Ethernet.linkStatus(): Unknown");
+    }    
+    if(Ethernet.linkStatus() == LinkON) {
+      Serial.println("Ethernet.linkStatus(): On");
+      return true;
+    }
+    if(Ethernet.linkStatus() == LinkOFF) {
+      Serial.println("Ethernet.linkStatus(): OFF");
+    }
+
+    return false;
 }
 
 int allSensorCount(void) {
