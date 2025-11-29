@@ -85,6 +85,7 @@ bool readSDConfig(const char *filepath) {
         Serial.println(" Files Found on Card .....");
         File root = SD.open("/");
         printDirectory(root, 0);
+        SD.end();
         return false;
     }
 
@@ -96,6 +97,7 @@ bool readSDConfig(const char *filepath) {
     if (!ini.open()) {
         Serial.print("Cannot Open INI File: ");
         Serial.println(filepath);
+        SD.end();
         return false;
     }
     Serial.print("Opened INI File: ");
@@ -112,6 +114,7 @@ bool readSDConfig(const char *filepath) {
         Serial.print(" not a valid format: ");
         Serial.println(buffer);
         ini.close();
+        SD.end();
         return false;
     }
 
@@ -123,6 +126,7 @@ bool readSDConfig(const char *filepath) {
             Serial.print("Invalid macaddress in ");
             Serial.println(filepath);
             ini.close();
+            SD.end();
             return false;
         }
         Serial.print("Read macaddress: ");
@@ -131,6 +135,7 @@ bool readSDConfig(const char *filepath) {
         Serial.print("Warning: 'macaddress' missing from ");
         Serial.println(filepath);
         ini.close();
+        SD.end();
         return false;
     }
 
@@ -150,6 +155,7 @@ bool readSDConfig(const char *filepath) {
         Serial.print("Warning: 'mqtt_address' missing from ");
         Serial.println(filepath);
         ini.close();
+        SD.end();
         return false;
     }
 
@@ -176,6 +182,7 @@ bool readSDConfig(const char *filepath) {
         Serial.print("Warning: 'mqtt_username' missing from ");
         Serial.println(filepath);
         ini.close();
+        SD.end();
         return false;
     }
 
@@ -189,6 +196,7 @@ bool readSDConfig(const char *filepath) {
         Serial.print("Warning: 'mqtt_password' missing from ");
         Serial.println(filepath);
         ini.close();
+        SD.end();
         return false;
     }
 
@@ -252,6 +260,7 @@ bool readSDConfig(const char *filepath) {
     }
     
     ini.close();
+    SD.end();
 
     return true;
 }
