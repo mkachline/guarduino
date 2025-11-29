@@ -193,14 +193,15 @@ bool readSDConfig(const char *filepath) {
     }
 
     // Read sensors - try each sensorN section from sensor0 to sensor63
-    for (int i = 0; i < 64; ++i) { 
+    const int maxSensors = sizeof(allSensors) / sizeof(allSensors[0]);
+    for (int i = 0; i < maxSensors; ++i) { 
         allSensors[i].type = unused; 
         allSensors[i].pin1 = -1; 
         allSensors[i].pin2 = -1; 
     }
 
     int sensorCount = 0;
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < maxSensors; i++) {
         char sectionName[16];
         snprintf(sectionName, sizeof(sectionName), "sensor%d", i);
         

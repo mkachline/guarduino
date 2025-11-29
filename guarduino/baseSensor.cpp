@@ -104,9 +104,9 @@ void getSensorName(char *destbuf, size_t destbufsize, baseSensor_t thisSensor) {
   
   byte macBytes[6];
   Ethernet.MACAddress(macBytes); // https://www.arduino.cc/reference/en/libraries/ethernet/ethernet.macaddress/  
+  memset(destbuf, '\0', destbufsize);
   snprintf(destbuf, destbufsize, "%s_%02X%02X%02X", BoardIdentify::make, macBytes[3], macBytes[4], macBytes[5]);
  
-  memset(destbuf, '\0', destbufsize);
   switch(thisSensor.type) {
     case door2:
       snprintf(destbuf, destbufsize, "door_%02d%02d_%02X%02X%02X", thisSensor.pin1, thisSensor.pin2, macBytes[3], macBytes[4], macBytes[5]);
@@ -705,7 +705,9 @@ void setupSensors(baseSensor_t *sensors, size_t sensorsSize)
       case motion2:
       case motion2_laser:
         getSensorName(sensorName, sizeof(sensorName), *thisSensor);
-        Serial.print("Setup ");
+        Serial.print("Setup_x(");
+        Serial.print(i);
+        Serial.print(") ");        
         Serial.println(sensorName);
         pinMode(thisSensor->pin1, INPUT);
         pinMode(thisSensor->pin2, INPUT);
@@ -717,14 +719,18 @@ void setupSensors(baseSensor_t *sensors, size_t sensorsSize)
       case switch1_fire:
       case switch1_alarmlight:
         getSensorName(sensorName, sizeof(sensorName), *thisSensor);
-        Serial.print("Setup ");
+        Serial.print("Setup_y(");
+        Serial.print(i);
+        Serial.print(") ");        
         Serial.println(sensorName);
         pinMode(thisSensor->pin1, OUTPUT);
         digitalWrite(thisSensor->pin1, LOW);
 
         sensorCommandTopic = getDeviceCommandTopic();
         if(sensorCommandTopic) {
-          Serial.print("SUBSCRIBE ");
+          Serial.print("SUBSCRIBE(");
+          Serial.print(i);
+          Serial.print(") ");          
           Serial.print(sensorCommandTopic);
           Serial.println("");
           pubsubClient.subscribe(sensorCommandTopic);
