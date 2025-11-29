@@ -21,21 +21,23 @@ static void printDirectory(File dir, int numTabs);
 // Read the INI config at `filepath` and populate globals. If file or SD unavailable, leave defaults.
 bool readSDConfig(const char *filepath) {
     Sd2Card card;
+    char cardType[12];
+    memset(cardType, '\0', sizeof(cardType));
     if(! card.init(SPI_HALF_SPEED, SDCARD_CS_PIN)) {
         Serial.println("Sd2Card.init() failed.");
         return false;
     }
     switch (card.type()) {
         case SD_CARD_TYPE_SD1:
-          Serial.println("SD Card Type: SD1");
+            sprintf(cardType, "SD1");          
           break;
 
         case SD_CARD_TYPE_SD2:
-          Serial.println("SD Card Type: SD2");
+            sprintf(cardType, "SD2");
           break;
 
         case SD_CARD_TYPE_SDHC:
-          Serial.println("SD Card Type: SDHC");
+            sprintf(cardType, "SDHC");
           break;
 
         default:
@@ -48,23 +50,26 @@ bool readSDConfig(const char *filepath) {
         Serial.println("Please validte your SD card partition is formatted either FAT16 or FAT32.");
         Serial.println("Note: exFAT is NOT supported.");
         return false;
-    } else {
-        Serial.println("Found FAT16/FAT32 partition on SD Card.");
     }
 
-    Serial.print("Initializing SD card using pin ");
-    Serial.print(SDCARD_CS_PIN);
-    Serial.println("...");
     for(int i = 0; i < 5; i++) {
         if (!SD.begin(SDCARD_CS_PIN)) {
-            Serial.print(".");
+            Serial.print("Will retry SD.begin(");
+            Serial.print(SDCARD_CS_PIN);
+            Serial.print(") on ");
+            Serial.print(cardType);
+            Serial.print(". Attempt ");
+            Serial.print(i + 1);
+            Serial.println(" of 5");
             delay(2000);
             continue;
         } else {
             break;
         }
         if(i == 4) {
-            Serial.println("SD.begin() failed to initialize.");
+            Serial.print("SD.begin(");
+            Serial.print(SDCARD_CS_PIN);
+            Serial.println(") failed to initialize.");  
             return false;
         }   
     }
@@ -93,11 +98,18 @@ bool readSDConfig(const char *filepath) {
         Serial.println(filepath);
         return false;
     }
+    Serial.print("Opened INI File: ");
+    Serial.print(filepath);
+    Serial.print(" from ");
+    Serial.print(cardType);
+    Serial.print(" Card Using SD CS PIN: ");
+    Serial.print(SDCARD_CS_PIN);    
+    Serial.println();
 
     if (!ini.validate(buffer, bufferLen)) {
         Serial.print("INI file ");
         Serial.print(filepath);
-        Serial.print(" not valid: ");
+        Serial.print(" not a valid format: ");
         Serial.println(buffer);
         ini.close();
         return false;
@@ -198,7 +210,10 @@ bool readSDConfig(const char *filepath) {
             continue;
         }
         
-        const char *type = buffer;
+        // Save the type string before buffer gets reused
+        char typeStr[32];
+        strncpy(typeStr, buffer, sizeof(typeStr) - 1);
+        typeStr[sizeof(typeStr) - 1] = '\0';
         
         // Read pin1
         int pin1 = -1;
@@ -221,14 +236,14 @@ bool readSDConfig(const char *filepath) {
             continue;
         }
         
-        allSensors[sensorCount].type = sensorTypeFromString(type);
+        allSensors[sensorCount].type = sensorTypeFromString(typeStr);
         allSensors[sensorCount].pin1 = (int8_t)pin1;
         allSensors[sensorCount].pin2 = (int8_t)pin2;
         sensorCount++;
         
         // tell user a one-line summary of "this" sensor just read.
         Serial.print("Read sensor: type=");
-        Serial.print(type);
+        Serial.print(typeStr);
         Serial.print(", pin1=");
         Serial.print(pin1);
         Serial.print(", pin2=");
